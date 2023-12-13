@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<root>
+    <!-- 还是称号作为特征最精准 -->
+    <job name="阿修罗" height="111">
+        <skills>skill/total_skill.xml</skills>
+        <roomskill>skill/current_axiuluo_skill.xml</roomskill>
+    </job>
+    <job name="女气功" height="111">
+        <skills>skill/total_skill.xml</skills>
+        <roomskill>skill/current_nvqigoong_skill.xml</roomskill>
+    </job>
+
+</root>

@@ -1,0 +1,12 @@
+npc
+boss
+monster
+gate
+hero
+card
+article
+shop
+select
+overflow
+service
+die

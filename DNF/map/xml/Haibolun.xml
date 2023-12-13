@@ -1,0 +1,12 @@
+<root>
+    <maps>
+        <document roomid="4_1" export_x="654" export_y="339" direction="up"/>
+        <document roomid="3_1" export_x="1238" export_y="481" direction="right"/>
+        <document roomid="3_2" export_x="625" export_y="415" direction="up"/>
+        <document roomid="2_3" export_x="1079" export_y="420" direction="up"/>
+        <document roomid="2_1" export_x="1020" export_y="516" direction="right"/>
+        <document roomid="2_2" export_x="634" export_y="414" direction="up"/>
+        <document roomid="1_2" export_x="1252" export_y="496" direction="right"/>
+        <document roomid="1_3" export_x="1250" export_y="490" direction="up"/>
+    </maps>
+</root>
