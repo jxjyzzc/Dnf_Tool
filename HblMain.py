@@ -37,7 +37,7 @@ keyboard = winApi.setKeyboard(keyboard)
 
 
 #实例化yolo
-# yolo = YOLO()
+yolo = YOLO()
 # 获取游戏窗口
 winApi.getHwnd()
 
