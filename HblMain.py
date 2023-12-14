@@ -45,7 +45,8 @@ winApi.getHwnd()
 
 playerSpeed= {'x':0,'y':0,'b':0}
 
-total_skill,room_skill = loadJob('阿修罗')
+total_skill,room_skill = loadJob('女气功')
+# total_skill,room_skill = loadJob('阿修罗')
 print("---------------------------")
 print("当前职业所有技能：",total_skill)
 print("房间释放技能组合：",room_skill)
@@ -61,8 +62,8 @@ preRoomId = None        #上一个房间ID
 
 def moveTime(dest,zero):
 
-    speedx = GAMEINFO.playerSpeed['x']
-    speedy = GAMEINFO.playerSpeed['y']
+    speedx = GAMEINFO.speedX
+    speedy = GAMEINFO.speedY
     # print('moveTime:',dest,zero)
     x_distance = int(dest[0]) - int(zero[0])
     y_distance = int(dest[1]) - int(zero[1])
@@ -84,6 +85,7 @@ def mapSkill(t_skill,skill):
 
         for v in skill: 
             for k in t_skill:
+                # todo 需要确保按键准确对应键盘的ch9329编码,不然会按到一个键位死循环
                 if k[0] == v:
                     # 释放该技能时间
                     pressTime = nowTimeMap[v]
@@ -102,8 +104,7 @@ def mapSkill(t_skill,skill):
                    
     return ("X",0)
 
-# 进入后看不到boss的房间用到该变量
-bossMove = False
+
 tryCount = 0
 maxCount = 5
 
@@ -116,6 +117,8 @@ SET_ITEM = False
 while True:
     SELECT = False
     SHOP = False
+    # 进入后看不到boss的房间用到该变量
+    bossMove = False
 
     # 获取游戏图像
     im_opencv = winApi.getGameImg()
@@ -177,7 +180,7 @@ while True:
             x_center = left + (right - left) / 2
             y_center = bottom
             boss.setPosition(x_center,y_center,right - left,y_center,"boss")
-
+            bossMove = True
             # 进boss房 liefeng_roomid会影响操作
             liefeng_roomid = None    
         if label == "monster":
@@ -256,6 +259,10 @@ while True:
                 keyboard.release()
                 # 一般要延迟一会才会重新挑战
                 time.sleep(5)
+                 # 重置技能释放时间记录
+                for k in total_skill:
+                    sk = k[0]
+                    nowTimeMap[sk]= 0
                 continue
             else:
                 if SET_ITEM is False:
@@ -274,7 +281,7 @@ while True:
                     CHALLENGE_AGAIN = True
                     continue
     else:
-        # print('重置一键聚物状态................')
+       # print('重置一键聚物状态................')
         SET_ITEM = False
         # print('重置重新挑战状态................')
         CHALLENGE_AGAIN = False
@@ -381,8 +388,8 @@ while True:
             #大致数值 473.2932035462136 179.85576946159154
             print("计算出人物移动速度：",speedx,speedy)
             playerSpeed['b'] = 1
-            GAMEINFO.playerSpeed['x'] = speedx
-            GAMEINFO.playerSpeed['y'] = speedy
+            GAMEINFO.speedX = speedx
+            GAMEINFO.speedY = speedy
             continue
     # exit()        
            

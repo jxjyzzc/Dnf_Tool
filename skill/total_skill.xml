@@ -29,9 +29,9 @@
         <skill id="AL" cd="6" costTime="0" name="念雷破"></skill>
 		<skill id="Q" cd="27.8" costTime="0.5" name="奔雷掌" ></skill>
 		<skill id="W" cd="45" costTime="0.4" name="聚能蓄念炮" ></skill>
-		<skill id="E" cd="40" costTime="2.2" name="奇袭幻影" ></skill>
+		<skill id="E" cd="40" costTime="1.2" name="奇袭幻影" ></skill>
 		<skill id="R" cd="60" costTime="2.3" name="天雷分身步" ></skill>
-		<skill id="Y" cd="5" costTime="7" name="三觉" ></skill>
+		<skill id="Y" cd="5" costTime="1" name="二觉" ></skill>
 		<skill id="T" cd="290" costTime="0.4" name="烈日气息" ></skill>
 		<skill id="CT" cd="12" costTime="0.3" name="念蛇" ></skill>
     </Skills>
