@@ -5,25 +5,45 @@
 # @file: WindowsAPI.py
 
 import numpy,cv2
+from utils.app import find_app
 from PIL import Image
+from config.cfg import *
 import win32gui,win32api,win32con,win32ui
 import time,random
+import logging
+from loguru import logger
+
+
+common_path = 'imgs/{}_{}/{}'.format(800, 600, '{}')
+
+select_role_path = common_path.format('select_role.png')
+start_game_path = common_path.format('start_game.png')
 
 class WindowsAPI():
 
     def __init__(self):
+        self.serial = serial
+        self.keyboard = keyboard
         self.down_state = False
         self.currentKey = None
         pass
 
-    def setKeyboard(self,keyboard):
-        self.keyboard = keyboard
+    def __del__(self):
+        if self.serial and self.serial != -1:
+            logger.info('关闭模拟键鼠模块')
+            # 放开按键
+            keyboard.release()
+            serial.ser.close()
+            self.serial = None
+            self.keyboard = None
+
+    def getKeyboard(self):
         return self.keyboard
 
     def getHwnd(self):
 
         hd = win32gui.GetDesktopWindow()
-        print("桌面句柄", hd)
+        logger.debug("桌面句柄", hd)
 
         hwndChildList = []
         win32gui.EnumChildWindows(hd, lambda hwnd, param: param.append(hwnd), hwndChildList)
@@ -33,10 +53,18 @@ class WindowsAPI():
             # print(hwnd,win32gui.GetWindowText(hwnd))
             # if win32gui.GetWindowText(hwnd) == "Dungeon Fighter Online":
             if win32gui.GetWindowText(hwnd) == "地下城与勇士：创新世纪":
-                print("游戏窗口句柄：", hwnd)
+                logger.info("游戏窗口句柄：", hwnd)
                 self.hWnd = hwnd
 
                 return hwnd
+
+    def find_img(self,img,template):
+        res = cv2.matchTemplate(img,template,cv2.TM_CCOEFF_NORMED)
+        min_val,max_val,min_loc,max_loc = cv2.minMaxLoc(res)
+
+        if max_val < 0.7:
+            return None
+        return max_loc
 
     def getGameImg(self):
 

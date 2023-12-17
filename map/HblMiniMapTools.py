@@ -80,7 +80,7 @@ class HblMiniMapTools():
 
     def getPlayerRoomId(self):
 
-        template = cv2.imread("map_hero.png")
+        template = cv2.imread(r"map/img/map_hero.png")
         template = cv2.cvtColor(template, cv2.COLOR_BGRA2RGB)
         # cv2.imshow('template',template)
         # cv2.waitKey(0)
@@ -94,14 +94,14 @@ class HblMiniMapTools():
 
     def getBossRoomId(self):
 
-        template = cv2.imread("map_boss.png")
+        template = cv2.imread(r"map/img/map_boss.png")
         template = cv2.cvtColor(template, cv2.COLOR_BGRA2RGB)
 
         return self.matchTemplate(template)
     
     def getLiefengRoomId(self):
 
-        template = cv2.imread("map_liefeng.png")
+        template = cv2.imread(r"map/img/map_liefeng.png")
         template = cv2.cvtColor(template, cv2.COLOR_BGRA2RGB)
 
         return self.matchTemplate(template)
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     
     # 测试未匹配图片
     # img_path = os.path.abspath("test/img/unidentification.png")
-    img_path = os.path.abspath("test/img/output.jpg")
+    img_path = os.path.abspath(r"test/img/output.jpg")
     cv_img = cv2.imread(img_path)
     cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGRA2RGB)
     cv2.imshow("test",cv_img)

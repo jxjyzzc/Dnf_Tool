@@ -116,7 +116,19 @@
             </cell>
 
             <!--房间号：3_3-->
-            <cell></cell>
+            <cell>
+                <!--状态技能-->
+                <chars>
+                    <char></char>
+                </chars>
+                <!--伤害技能-->
+                <chars>
+                    <char>A</char>
+                    <char>D</char>
+                    <char>S</char>
+                    <char>AL</char>
+                </chars>
+            </cell>
 
             <!--房间号：3_4-->
             <cell></cell>
