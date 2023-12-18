@@ -43,7 +43,7 @@ class WindowsAPI():
     def getHwnd(self):
 
         hd = win32gui.GetDesktopWindow()
-        logger.debug("桌面句柄", hd)
+        logger.debug("桌面句柄{}", hd)
 
         hwndChildList = []
         win32gui.EnumChildWindows(hd, lambda hwnd, param: param.append(hwnd), hwndChildList)
@@ -53,9 +53,11 @@ class WindowsAPI():
             # print(hwnd,win32gui.GetWindowText(hwnd))
             # if win32gui.GetWindowText(hwnd) == "Dungeon Fighter Online":
             if win32gui.GetWindowText(hwnd) == "地下城与勇士：创新世纪":
-                logger.info("游戏窗口句柄：", hwnd)
+                logger.info("游戏窗口句柄：{}", hwnd)
                 self.hWnd = hwnd
-
+                # 激活窗口
+                win32gui.ShowWindow(hwnd,win32con.SW_SHOW)
+                win32gui.SetForegroundWindow(hwnd)
                 return hwnd
 
     def find_img(self,img,template):
