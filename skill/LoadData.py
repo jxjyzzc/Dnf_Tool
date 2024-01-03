@@ -64,7 +64,7 @@ def loadRoomSkill(path):
 
 
 
-def loadJob(jobName):
+def loadJob(jobName,roomName):
 
     tree = ET.parse("skill/joblist.xml")
     root = tree.getroot()
@@ -81,7 +81,8 @@ def loadJob(jobName):
                 GAMEINFO.playerHeight = int(sub_height)
 
                 skill_path = child.find('skills').text
-                roomskill_path = child.find("roomskill").text
+                roomskill_path = child.find("roomskill[@room_name='"+roomName+"']").text
+                
 
                 total_skill = loadTotalSkill(jobName,skill_path)
                 room_skill = loadRoomSkill(roomskill_path)
@@ -92,7 +93,7 @@ def loadJob(jobName):
     return None,None
 
 if __name__ == "__main__":
-    t_skill,room_skill = loadJob('女气功')
+    t_skill,room_skill = loadJob('阿修罗','bydt')
     # skill = loadRoomSkill('skill/current_nvqigoong_skill.xml')
     # print('所有技能',t_skill)
     skill = ['S','CR']

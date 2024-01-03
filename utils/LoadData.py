@@ -6,9 +6,9 @@
 
 import xml.etree.ElementTree as ET
 
-def loadRoomExport():
+def loadRoomExport(path):
 
-    path = r"map\xml\Haibolun.xml"
+    
 
     roomExport = {
         "maps":{}
@@ -37,5 +37,5 @@ def loadRoomExport():
 
     return roomExport
 
-roomExport = loadRoomExport()
+# roomExport = loadRoomExport()
 # print(roomExport)

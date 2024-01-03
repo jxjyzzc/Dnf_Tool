@@ -16,7 +16,7 @@ from yolo.yolo import YOLO,YOLO_ONNX
 
 from map.HblMiniMapTools import miniMapTools
 from utils.SIFTLoc import siftLoc
-from utils.LoadData import roomExport
+from utils.LoadData import loadRoomExport
 from utils.GameInfo import GAMEINFO
 from utils.Entity import Entity
 import os,sys,time
@@ -41,7 +41,7 @@ keyboard = winApi.getKeyboard()
 
 # cv2.namedWindow('im_opencv')  # 命名窗口
 
-
+roomExport = loadRoomExport(r"map\xml\Haibolun.xml")
 
 def moveTime(dest,zero):
 
@@ -60,8 +60,8 @@ def distanceTo(p1,p2):
 
     return math.sqrt(pow(p1.x - p2.x,2)  + pow(p1.y - p2.y,2))
 
-total_skill,room_skill = loadJob('女气功')
-# total_skill,room_skill = loadJob('阿修罗')
+# total_skill,room_skill = loadJob('女气功')
+total_skill,room_skill = loadJob('阿修罗','hbl')
 print("---------------------------")
 print("当前职业所有技能：",total_skill)
 print("房间释放技能组合：",room_skill)
@@ -115,8 +115,8 @@ def autoBeatMonster():
     maxCount = 5
 
     SELECT = False
-    SERVICE = None
-    OVERFLOW = None
+    SERVICE = False
+    OVERFLOW = False
     CHALLENGE_AGAIN = False
     SET_ITEM = False
 
@@ -302,9 +302,10 @@ def autoBeatMonster():
             #新房间
             if preRoomId != room_id:
 
+                print('roomId:',room_id)
                 # print('total_skill:',total_skill)
                 # print('---------------')
-                # print('room_skill:',room_skill)
+                print('room_skill:',room_skill)
                 x,y = room_id.split("_")
                 x = int(x)
                 y = int(y)
@@ -594,7 +595,7 @@ def autoBeatMonster():
                     directArr = ['44','22','66','88']
                     randomDirect = random.choice(directArr)
                     keyboard.send_data(randomDirect)  
-                    time.sleep(random.random())
+                    time.sleep(random.random()*3)
                     tryCount = 0    
 
                 # 人物移动到拾取范围时
@@ -727,7 +728,8 @@ def autoBeatMonster():
             # if cv2.waitKey(500) & 0xFF == 27:
             #     break
     except Exception as e:
-        logger.error('打怪运行失败,msg:{}',e)         
+        logger.error('打怪运行失败,msg:{}',e) 
+        logger.error('出错文件:{},出错行号:{}',e.__traceback__.tb_frame.f_globals["__file__"],e.__traceback__.tb_lineno)      
 
     winApi.__del__()    
     # 关闭所有窗口

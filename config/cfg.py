@@ -7,7 +7,7 @@ import serial,ch9329Comm
 _config_path = os.path.dirname(__file__)
 _idx = _config_path.rfind(os.sep)
 # MY_DLL = os.path.join(_config_path[:_idx], 'dll', 'msdk_64.dll')
-serial.ser = serial.Serial('COM5', 115200)  # 开启串口
+serial.ser = serial.Serial('COM3', 9600)  # 开启串口
 keyboard = ch9329Comm.keyboard.DataComm()
 
 # 电脑的分辨率，主要用于鼠标移动判定
