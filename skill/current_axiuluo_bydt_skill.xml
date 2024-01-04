@@ -91,7 +91,7 @@
                 <!--状态技能-->
                 <chars>
                     <char>T</char>
-                    <char>CR</char>
+                    <char>CT</char>
                  </chars>
                 <!--伤害技能-->
                 <chars></chars>
