@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 import sys
 sys.path.append('.')
 
-from utils.GameInfo import GAMEINFO 
+from gameUtils.GameInfo import GAMEINFO 
 
 def loadTotalSkill(jobName,path):
 

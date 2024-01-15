@@ -1,7 +1,7 @@
 # coding: utf-8
 # !/usr/bin/python
 import random
-from utils.app import find_app
+from gameUtils.app import find_app
 from config.key_codes import CODES
 from config.cfg import *
 import time

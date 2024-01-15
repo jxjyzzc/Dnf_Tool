@@ -85,6 +85,7 @@ class DataComm:
             print("int too big to convert")
             return False
         packet = HEAD + ADDR + CMD + LEN + DATA + bytes([SUM])  # 数据包
+        # print('packet:',packet.hex().upper())
         port.ser.write(packet)  # 将命令代码写入串口
         return True  # 如果成功，则返回True，否则引发异常
 
@@ -152,6 +153,7 @@ class DataComm:
             print("int too big to convert")
             return False
         packet = HEAD + ADDR + CMD + LEN + DATA + bytes([SUM])  # 数据包
+        # print('send_data_relatively packet:',packet.hex().upper())
         port.ser.write(packet)  # 将命令代码写入串口
         return True  # 如果成功，则返回True，否则引发异常
     
@@ -183,8 +185,8 @@ class DataComm:
 
         # test
         # print("====================参数信息=============================================")
-        # print("x=%d y=%d number_list=%d le=%d deviation=%d bias=%f type=%d" % (
-        #     x, y, number_list, le, deviation, bias, type_))
+        print("x=%d y=%d number_list=%d le=%d deviation=%d bias=%f type=%d" % (
+            x, y, number_list, le, deviation, bias, type_))
 
         # 将bezier_array数组转为整数
         for i in range(len(bezier_array)):
@@ -232,8 +234,10 @@ class DataComm:
         mouse = DataComm()
         # 调用send_data_absolute方法将鼠标指针移动到屏幕的中心
         mouse.send_data_absolute(int(self.X_MAX / 2), int(self.Y_MAX / 2))
+        time.sleep(1)
         # 调用move_to方法，参数为(50,50)
         mouse.move_to_basic(x, y)
+        time.sleep(1)
         # 计算鼠标的位置距离屏幕中心点的距离，并将距离输出到控制台上
         x_, y_ = pyautogui.position()
         distance = ((x_ - self.X_MAX / 2) ** 2 + (y_ - self.Y_MAX / 2) ** 2) ** 0.5
@@ -261,9 +265,13 @@ class DataComm:
                 data = {'value': 0}
                 json.dump(data, file)
             value_sum = 0
-            for x, y in [(5, 20), (50, 25), (233, 233), (313, 212), (500, 10), (500, 100), (17, 587),
-                         (666, 666)]:
-                value_sum += self.check_difference_ratio(x, y)
+            write_count = 0
+            while write_count < 8:
+                for x, y in [(5, 20), (50, 25), (233, 233), (313, 212), (500, 10), (500, 100), (17, -587),
+                            (-666, -666)]:
+                    my_ratio = self.check_difference_ratio(x, y)
+                    value_sum += my_ratio
+                    write_count += 1
             value = value_sum / 8
             with open(file_path, 'w') as file:
                 data = {'value': value}
@@ -290,6 +298,8 @@ class DataComm:
     
     def move_to(self, dest_x: int, dest_y: int, ctrl: str = '', port: serial = serial) -> None:
         start_x, start_y = pyautogui.position()
+        print("start_x, start_y：", start_x, start_y)
+        print("移动到目标坐标：", dest_x, dest_y)
         correction_factor = self.get_corrector()
         corrected_x = dest_x * (1 / correction_factor)
         corrected_y = dest_y * (1 / correction_factor)

@@ -15,14 +15,14 @@ from loguru import logger
 from yolo.yolo import YOLO,YOLO_ONNX
 
 from map.BydtMiniMapTools import miniMapTools
-from utils.SIFTLoc import siftLoc
-from utils.LoadData import loadRoomExport
-from utils.GameInfo import GAMEINFO
-from utils.Entity import Entity
+from gameUtils.SIFTLoc import siftLoc
+from gameUtils.LoadData import loadRoomExport
+from gameUtils.GameInfo import GAMEINFO
+from gameUtils.Entity import Entity
 import os,sys,time
 import random,math
 
-from utils.WindowsAPI import winApi
+from gameUtils.WindowsAPI import winApi
 from skill.LoadData import loadJob
 
 # keyboard.send_data('HHEELLLLOO')  # 按下HELLO

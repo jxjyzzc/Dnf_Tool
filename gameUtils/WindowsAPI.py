@@ -5,7 +5,7 @@
 # @file: WindowsAPI.py
 
 import numpy,cv2
-from utils.app import find_app
+from gameUtils.app import find_app
 from PIL import Image
 from config.cfg import *
 import win32gui,win32api,win32con,win32ui
@@ -40,6 +40,11 @@ class WindowsAPI():
     def getKeyboard(self):
         return self.keyboard
 
+    def setHwnd(self,hwnd):
+        logger.debug("绑定窗口句柄{}", hwnd)
+        self.hWnd = hwnd
+
+
     def getHwnd(self):
 
         hd = win32gui.GetDesktopWindow()
@@ -54,11 +59,25 @@ class WindowsAPI():
             # if win32gui.GetWindowText(hwnd) == "Dungeon Fighter Online":
             if win32gui.GetWindowText(hwnd) == "地下城与勇士：创新世纪":
                 logger.info("游戏窗口句柄：{}", hwnd)
-                self.hWnd = hwnd
-                # 激活窗口
-                win32gui.ShowWindow(hwnd,win32con.SW_SHOW)
-                win32gui.SetForegroundWindow(hwnd)
+                self.setHwnd(hwnd)
+                self.showWindow()
                 return hwnd
+
+
+
+   
+
+    ''' 激活窗口 '''
+    def showWindow(self):
+        if not self.hWnd:
+            logger.warning("未找到游戏窗口句柄")
+            return False
+              
+        win32gui.ShowWindow(self.hWnd,win32con.SW_SHOW)
+        # 设置窗口为前台
+        win32gui.SetForegroundWindow(self.hWnd)
+        return True
+        
 
     def find_img(self,img,template):
         res = cv2.matchTemplate(img,template,cv2.TM_CCOEFF_NORMED)
@@ -138,5 +157,39 @@ class WindowsAPI():
         self.down_state = 'release'
         self.currentKey = None
         return self.keyboard.release() 
+    
+    '''
+        鼠标绝对移动
+        x: 横坐标
+        y: 纵坐标
+        offex_x: 横坐标偏移量
+        offex_y: 纵坐标偏移量
+    '''
+    def moveRel(self, x, y, offex_x, offex_y):
+        mouse.check_difference_ratio(x,y)
+        mouse.send_data_absolute(x,y)
+        time.sleep(0.1)
+        loop_x = offex_x / 128
+        loop_y = offex_y / 128
+        mod_x = offex_x % 128
+        mod_y = offex_y % 128
+        min_loop = min(abs(loop_x),abs(loop_y))
+        for i in range(int(min_loop)):
+            if loop_x > 0:
+                mouse.send_data_relatively(127,0)
+                time.sleep(0.1)
+            elif loop_x < 0:
+                mouse.send_data_relatively(-127,0)
+                time.sleep(0.1)
+            if loop_y > 0:
+                mouse.send_data_relatively(0,127)
+                time.sleep(0.1)
+            elif loop_y < 0:
+                mouse.send_data_relatively(0,-127)
+                time.sleep(0.1)
+        mouse.send_data_relatively(mod_x,mod_y)
 
+
+    def moveAbs(self,x,y):
+        mouse.send_data_absolute(x,y)    
 winApi = WindowsAPI()
