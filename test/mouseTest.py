@@ -149,10 +149,10 @@ screenwidth,screenheight = pyautogui.size()
 print('screenwidth:',screenwidth,',screenheight:',screenheight)
 # mouse.check_difference_ratio(960,540)
 
-mouse.send_data_absolute(1, 1)
-time.sleep(2)
+# mouse.send_data_absolute(1, 1)
+# time.sleep(2)
 # mouse.move_to(417, -399)
-# mouse.send_data_absolute(417, 399)
+mouse.send_data_absolute(417, 399)
 
 # mouse.move_to(417, -399)
 
@@ -173,28 +173,27 @@ x_, y_ = pyautogui.position()
 # 0.478760
 print('x_:',x_,',y_:',y_)
 
-try_num = 127
-for i in range(try_num):
-    pre_x = x_
-    pre_y=y_
-    mouse.send_data_relatively(i,-i)
-    time.sleep(0.5)
-    x_, y_ = pyautogui.position()
-    if x_>=screenwidth-1 or y_>=screenheight-1:
-        # print('out of screen,reset')
-        mouse.send_data_absolute(1, 1)
-        pre_x = 1
-        pre_y=1
-        mouse.send_data_relatively(i,-i)
-        time.sleep(0.5)
-        x_, y_ = pyautogui.position()
-        # break
-    print(f'{i}:{(x_-pre_x)},')
+# try_num = 127
+# for i in range(try_num):
+#     pre_x = x_
+#     pre_y=y_
+#     mouse.send_data_relatively(i,-i)
+#     time.sleep(0.5)
+#     x_, y_ = pyautogui.position()
+#     if x_>=screenwidth-1 or y_>=screenheight-1:
+#         # print('out of screen,reset')
+#         mouse.send_data_absolute(1, 1)
+#         pre_x = 1
+#         pre_y=1
+#         mouse.send_data_relatively(i,-i)
+#         time.sleep(0.5)
+#         x_, y_ = pyautogui.position()
+#         # break
+#     print(f'{i}:{(x_-pre_x)},')
     # print('i:',i,',x_:',x_,',y_:',y_)
     # print('ox_:',(x_-pre_x),',oy_:',(y_-pre_y))
 
 
-sys.exit()
 
 
 # time.sleep(0.2)
