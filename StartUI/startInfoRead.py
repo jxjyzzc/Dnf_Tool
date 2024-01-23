@@ -44,13 +44,12 @@ def find_curr_role_picd(img: str):
         cur_img = remove_background(bg,cur_img)
         # cv2.imshow('after_cur_img', cur_img)
         # cv2.waitKey(2000)
-    
-
-    return cur_img
+        return cur_img,(curr_left,curr_top,curr_right,curr_bottom)
+    return None,None
 
 # 读取当前选择的角色信息
 def read_curr_role_info(img: str):
-    cur_img = find_curr_role_picd(img)
+    cur_img,cur_roi = find_curr_role_picd(img)
     # print('cur_img',cur_img)
     # 截取图片进行识别
     tmp_jpg_path = 'tmp.jpg'
@@ -60,8 +59,8 @@ def read_curr_role_info(img: str):
     # cv2.imshow('cur_img', image)
     # cv2.waitKey(2000)
     result = ocrUtil.detectImgOcr(image)
-    print('result:',result)
-    print('result size:',len(result[0]))
+    # print('result:',result)
+    # print('result size:',len(result[0]))
 
     boxes = [detection[0] for line in result for detection in line]
     txts = [detection[1][0] for line in result for detection in line] 
@@ -74,11 +73,16 @@ def read_curr_role_info(img: str):
     if len(result[0])==3:
         for i in range(len(boxes)):
             if txts[i] != '':
-                new_result.append((boxes[i],txts[i]))
+                new_result.append((cur_roi,txts[i]))
 
     # os.remove(tmp_jpg_path)
     return new_result
-            
+
+"""判断是否是在角色选择界面"""
+def isInStart(img):
+    isStart,coordinate = find_one_picd(img,'startUI/img/start_game.jpg',0.8)
+    return isStart
+
 """
     开始游戏界面信息读取
 """    

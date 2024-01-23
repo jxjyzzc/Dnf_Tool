@@ -5,28 +5,53 @@ project_dir = os.path.join(root_dir, "..")
 sys.path.append(project_dir)
 
 from startUI.RoleInfo import RoleInfo
-import startUI.startInfoRead as startInfoRead
+import startUI.startInfoRead as startInfoRead,isInStart
 from loguru import logger
 # from threading import Thread
 from threading import Timer
 import time,random
 from gameUtils.WindowsAPI import winApi
 from gameUtils.GameInfo import GAMEINFO 
-
+from gameUtils.recognition.Rectangle import Rectangle,points_to_rect
 
 def checkInMap(roleInfo,map_str=None):
     GAMEINFO.gameState = True
     im_opencv = winApi.getGameImg()
     inMap = roleInfo.isInRecommendMap(im_opencv)  
-    return inMap  
+    return inMap
 
-def afterAutoBeatMonster(roleInfo,jobList):
+import ast
+
+def inConfigROI(left,top,right,bottom,postionList):
+    rect =  Rectangle(left,top,right,bottom)  
+    for i in range(len(postionList)):
+        postion = ast.literal_eval(postionList[i])
+        logger.debug('left,top,right,bottom:{}',(left,top,right,bottom))
+        logger.debug('postion:{}',*postion)
+        if rect.is_center_near(Rectangle(*postion),5):
+            logger.info('当前区域在配置文件区域目标：{}',postion)
+            return postionList[i]
+    return None    
+
+def afterAutoBeatMonster(roleInfo,postionList):
     logger.info('===============刷图后续处理==================')
     roleInfo.dismantlingEquipment()
     # 分解后当前角色完成，角色列表更新
-    if jobList is not None:
-        GAMEINFO.modifyJobList(jobList)
+    if postionList is not None:
+        GAMEINFO.modifyRolePosition(postionList)
+    roleInfo.changeRole()    
     # timer.cancel()    
+
+def initPostionConfig(postionList):    
+    im_opencv = winApi.getGameImg()
+    job_postion_list = startInfoRead.startGameInfo(im_opencv)
+    
+    if len(job_postion_list) > 0:
+        logger.info('在角色选择界面才可初始化postionList:{}',job_postion_list)
+        postionList = [job[0] for job in job_postion_list]
+
+    GAMEINFO.modifyRolePosition(postionList)
+    pass
 
 if __name__=="__main__":
     roleInfo = RoleInfo()
@@ -50,37 +75,44 @@ if __name__=="__main__":
            afterAutoBeatMonster(roleInfo,None)
 
     print('===============开始获取当前人物可刷图信息==================')
-    jobList = GAMEINFO.queryJobList()
-    job_postion_list = startInfoRead.startGameInfo(im_opencv)
-    if len(jobList) == 0 and job_postion_list:
-        logger.info('当前在角色选择界面.')
-        jobList = [job[-1] for job in job_postion_list]
-    GAMEINFO.modifyJobList(jobList)
+    postionList = GAMEINFO.queryJobList()
+    if len(postionList)==0:
+        logger.info('===============配置信息未加载角色信息，进行可刷图角色寻找================') 
+        im_opencv = winApi.getGameImg()
+        inStartGame = isInStart(im_opencv)
+        while inStartGame:
+            initPostionConfig(postionList)
+            im_opencv = winApi.getGameImg()
+            inStartGame = isInStart(im_opencv)
+            roleInfo.changeRole()
+            time.sleep(2)
+
     roleResult = roleInfo.getBasicRoleInfo()
-    logger.debug('jobList:{},roleResult:{}',jobList,roleResult)
+    logger.debug('postion_list:{},roleResult:{}',postionList,roleResult)
     print('===============开始循环脚本==================')
     GAMEINFO.gameLoop = True
     while GAMEINFO.gameLoop:
         logger.info('roleResult:{}',roleResult)
         if len(roleResult['level'])==0:
             logger.info('===============未找到图内特征,开始选择角色=================')
-            curRole,nextRole = roleInfo.changeRole()
+            curPostion,nextPostion = roleInfo.changeRole()
             time.sleep(3)
             roleResult = roleInfo.getBasicRoleInfo()
             time.sleep(1)
             continue
         if roleResult['power'] == '0/156':
-            
-            curRole,nextRole = roleInfo.changeRole()
+            curPostion,nextPostion = roleInfo.changeRole()
             # logger.debug('pre modify jobList:{}',jobList)
-            if curRole in jobList:
-                logger.info('{} 疲劳为0,角色列表中移除该角色',curRole)
-                jobList.remove(curRole)
-                GAMEINFO.modifyJobList(jobList)
+            
+            removePostion = inConfigROI(*curPostion,postionList)
+            if removePostion is not None:
+                logger.info('{} 疲劳为0,角色列表中移除该角色',removePostion)
+                postionList.remove(removePostion)
+                GAMEINFO.modifyRolePosition(postionList)
                 
-            jobList = GAMEINFO.queryJobList()
-            logger.debug('重新加载还剩角色列表:{}',jobList)
-            if len(jobList) == 0:
+            postionList = GAMEINFO.queryJobList()
+            logger.debug('重新加载还剩角色列表:{}',postionList)
+            if len(postionList) == 0:
                 logger.info('角色列表为空，退出循环')
                 GAMEINFO.gameLoop = False
                 break
@@ -88,7 +120,7 @@ if __name__=="__main__":
             roleResult = roleInfo.getBasicRoleInfo()
             time.sleep(1)
             continue
-        if roleInfo.gotoRecommendMap('06')==6:
+        elif roleInfo.gotoRecommendMap('06')==6:
             # 黑屏等待
             time.sleep(2)
             roleResult = roleInfo.getBasicRoleInfo()
@@ -114,7 +146,7 @@ if __name__=="__main__":
                     # 出图分解装备
                     if isFinish:
                         time.sleep(2)
-                        afterAutoBeatMonster(roleInfo,jobList)
+                        afterAutoBeatMonster(roleInfo,postionList)
                         continue
                 else:
                     logger.warning('进入普通地图失败')

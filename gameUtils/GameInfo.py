@@ -78,7 +78,7 @@ class GameInfo(object):
                         # print('game_info.ini load配置jobList：',config['finishedRole']['jobList'])
                 return self.joblist         
 
-        def modifyJobList(self,jobList):
+        def modifyRolePosition(self,jobList):
                 config['finishedRole']['jobList'] = jobList
                 self.joblist = jobList
                 config.write()                   

@@ -70,16 +70,32 @@ def labelEquipment(im_opencv,max_y):
     #     cv2.waitKey(0)
 
     return rects
+"""
+    四个点坐标，我们可以确定一个矩形区域。这四个点分别代表矩形的左上角、右上角、右下角和左下角
+"""
+def points_to_rect(points):
+    # 确定矩形的左上角和右下角坐标
+    left_top = min(points, key=lambda p: (p[0], p[1]))
+    right_bottom = max(points, key=lambda p: (p[0], p[1]))
+
+    # 计算矩形的宽度和高度
+    width = right_bottom[0] - left_top[0]
+    height = right_bottom[1] - left_top[1]
+
+    # 输出矩形区域信息
+    # print(f"矩形区域：({left_top}, {right_bottom})")
+    # print(f"矩形尺寸：宽={width}，高={height}")
+    return left_top, right_bottom, width, height
 
 from typing import Tuple
 import math
 
 class Rectangle:
     def __init__(self, left: int, top: int, right: int, bottom: int):
-        self.left = left
-        self.top = top
-        self.right = right
-        self.bottom = bottom
+        self.left = int(left)
+        self.top = int(top)
+        self.right = int(right)
+        self.bottom = int(bottom)
         
         # 计算并存储中心点坐标
         self.center = (int((self.left + self.right) / 2), int((self.top + self.bottom) / 2))

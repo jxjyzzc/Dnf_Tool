@@ -10,11 +10,13 @@ from startUI import Bag,startInfoRead
 from gameUtils.GameInfo import GAMEINFO 
 from gameUtils import SIFTLoc as siftLoc,app as app
 from gameUtils.WindowsAPI import winApi
+from gameUtils.recognition.Rectangle import Rectangle,points_to_rect
 from tool.ocrutil import cv_imread,find_one_picd,cv_imread_roi
 from tool.ocrutil import ocrUtil
 import cv2
 import numpy as np
 
+import ast
 import time,random
 from loguru import logger
 
@@ -111,7 +113,7 @@ class RoleInfo():
         切换角色
     """
     def changeRole(self):
-        jobList = GAMEINFO.joblist
+        postionList = GAMEINFO.joblist
         logger.info('开始切换角色。。。')
         full_img = winApi.getGameImg()
         winApi.randomDelay(0.3,0.5)
@@ -133,7 +135,7 @@ class RoleInfo():
                 find_select_role,coordinate = find_one_picd(full_img,'startUI/img/select_role.jpg',0.9)
                 if find_select_role:
                     logger.debug('选择角色按钮坐标：{}',(GAMEINFO.gameRect['x']+coordinate[0],GAMEINFO.gameRect['y']+coordinate[1]))
-                    winApi.moveAbsClick(GAMEINFO.gameRect['x']+coordinate[0]+random.randint(-5,5), GAMEINFO.gameRect['y']+coordinate[1]+random.randint(-22,2))
+                    winApi.moveAbsClick(GAMEINFO.gameRect['x']+coordinate[0]+random.randint(-3,3), GAMEINFO.gameRect['y']+coordinate[1]+random.randint(-22,2))
                     time.sleep(2.5)
                     full_img = winApi.getGameImg()
                     # cv2.imshow('full_img',full_img)
@@ -151,29 +153,36 @@ class RoleInfo():
                 tryCount = 0
                 break
             tryCount+=1
+            full_img = winApi.getGameImg()
             time.sleep(2)
         # print('cur_res:',cur_res)
+        cur_roi = cur_res[0][0]
+        logger.debug('cur_postion:{}',cur_roi)
 
-        if len(jobList)>0:
+        if len(job_postion_list)>0:
+            # cur_role = cur_res[0][-1]
             
-            cur_role = cur_res[0][-1]
+            cur_rect = Rectangle(cur_roi[0],cur_roi[1],cur_roi[2],cur_roi[3])
             # 获取要切换的角色
             for job in job_postion_list:
-                if job[-1] != cur_role:
-                    next_role = job[1]
-                    print('job:',job)
+                # job = ast.literal_eval(job)
+                # print('job:',job)
+                tmp_cect = Rectangle(job[0][0],job[0][1],job[0][2],job[0][3]) 
+                # 不在当前坐标的角色进行切换
+                if not cur_rect.is_center_near(tmp_cect,3):
+                    next_position = job
                     job_x,job_top,job_right,job_bottom = GAMEINFO.gameRect['x']+job[0][0],GAMEINFO.gameRect['y']+job[0][1],GAMEINFO.gameRect['x']+job[0][2],GAMEINFO.gameRect['y']+job[0][3]
                     job_center_x = int((job_x+job_right)/2)
                     job_center_y = int((job_top+job_bottom)/2)
-                    logger.debug('找到要切换的角色 {} 坐标：{}，{}，{},{}'.format(next_role,job_x,job_top,job_right,job_bottom))
-                    winApi.moveAbsClick(job_center_x+random.randint(-5,5), job_center_y+random.randint(-22,2))
+                    logger.debug('找到要切换的角色坐标：{}'.format(job))
+                    winApi.moveAbsClick(job_center_x+random.randint(-3,3), job_center_y+random.randint(-22,2))
                     winApi.randomDelay(0.3,0.5)
                     winApi.keyDown('SP')
                     winApi.randomDelay(1.3,1.5)
-                    logger.info('完成角色切换: {} --> {}',cur_role,next_role)
-                    return cur_role,next_role
+                   
+                    return (cur_roi[0],cur_roi[1],cur_roi[2],cur_roi[3]),next_position
 
-        return None,None
+        return (cur_roi[0],cur_roi[1],cur_roi[2],cur_roi[3]),None
 
     """
         分解装备
@@ -483,5 +492,5 @@ class RoleInfo():
 if __name__ == '__main__':
     GAMEINFO.queryJobList()                                                      
     roleInfo = RoleInfo()
-    roleInfo.dismantlingEquipment()
-    # roleInfo.changeRole()
+    # roleInfo.dismantlingEquipment()
+    roleInfo.changeRole()

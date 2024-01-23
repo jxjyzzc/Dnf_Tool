@@ -604,7 +604,7 @@ def autoBeatMonster(jobName,roleInfo:RoleInfo=None):
                 print("人物坐标：",(hero.x,hero.y))
                 print('距离人物最近的物品坐标：',(article.x,article.y))
                 # 进行向物品移动的时间
-                x_time,y_time = moveTime([article.x+random.randint(-5,5),article.y+random.randint(-5,5)],[hero.x,hero.y])
+                x_time,y_time = moveTime([article.x+random.randint(-3,3),article.y+random.randint(-3,3)],[hero.x,hero.y])
 
                 # # 向物品移动
                 if article.y - hero.y < 0:
@@ -636,17 +636,17 @@ def autoBeatMonster(jobName,roleInfo:RoleInfo=None):
                     print('------------当前拾取失败次数过多,尝试随机走动--------')
                     # 随机移动防止卡死
                     directArr = ['44','22','66','88']
-                    if 'map' in roomExport and room_id in roomExport['map']:
-                        export = roomExport['maps'][room_id]
-                    # 朝着下一地图之外的方向移动
-                    if export['direction'] == 'right':
-                        directArr.remove('44')
-                    elif export['direction'] == 'left':
-                        directArr.remove('66')
-                    elif export['direction'] == 'up':
-                        directArr.remove('22')
-                    elif export['direction'] == 'down':
-                        directArr.remove('88')
+                    # if 'map' in roomExport and room_id in roomExport['map']:
+                    #     export = roomExport['maps'][room_id]
+                    # # 朝着下一地图之外的方向移动
+                    # if export['direction'] == 'right':
+                    #     directArr.remove('44')
+                    # elif export['direction'] == 'left':
+                    #     directArr.remove('66')
+                    # elif export['direction'] == 'up':
+                    #     directArr.remove('22')
+                    # elif export['direction'] == 'down':
+                    #     directArr.remove('88')
 
                     randomDirect = random.choice(directArr)
                     keyboard.send_data(randomDirect)  
@@ -654,7 +654,7 @@ def autoBeatMonster(jobName,roleInfo:RoleInfo=None):
                     tryCount = 0    
 
                 # 人物移动到拾取范围时
-                if abs(article.x - hero.x) <= 10 and abs(article.y - hero.y) <= 15:
+                if abs(article.x - hero.x) <= 5 and abs(article.y - hero.y) <= 5:
                     time.sleep(0.5)
                     keyboard.send_data("XX")
                     winApi.keyRelease()
