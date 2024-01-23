@@ -5,7 +5,7 @@ project_dir = os.path.join(root_dir, "..")
 sys.path.append(project_dir)
 
 from startUI.RoleInfo import RoleInfo
-import startUI.startInfoRead as startInfoRead,isInStart
+import startUI.startInfoRead as startInfoRead
 from loguru import logger
 # from threading import Thread
 from threading import Timer
@@ -79,11 +79,11 @@ if __name__=="__main__":
     if len(postionList)==0:
         logger.info('===============配置信息未加载角色信息，进行可刷图角色寻找================') 
         im_opencv = winApi.getGameImg()
-        inStartGame = isInStart(im_opencv)
+        inStartGame = startInfoRead.isInStart(im_opencv)
         while inStartGame:
             initPostionConfig(postionList)
             im_opencv = winApi.getGameImg()
-            inStartGame = isInStart(im_opencv)
+            inStartGame = startInfoRead.isInStart(im_opencv)
             roleInfo.changeRole()
             time.sleep(2)
 
