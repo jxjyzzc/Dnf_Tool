@@ -21,9 +21,11 @@ from gameUtils.GameInfo import GAMEINFO
 from gameUtils.Entity import Entity
 import os,sys,time
 import random,math
+import numpy as np
 
 from gameUtils.WindowsAPI import winApi
 from skill.LoadData import loadJob
+from startUI import RoleInfo
 
 # keyboard.send_data('HHEELLLLOO')  # 按下HELLO
 # keyboard.release()  # 松开
@@ -31,11 +33,11 @@ from skill.LoadData import loadJob
 # mdc = mouse.DataComm()
 # mdc.send_data_absolute(500,500)
 
-
 #实例化yolo
 yolo = YOLO()
 # 获取游戏窗口
 winApi.getHwnd()
+
 # 键盘操作接口
 keyboard = winApi.getKeyboard()
 
@@ -60,54 +62,77 @@ def distanceTo(p1,p2):
 
     return math.sqrt(pow(p1.x - p2.x,2)  + pow(p1.y - p2.y,2))
 
-# total_skill,room_skill = loadJob('女气功')
-total_skill,room_skill = loadJob('阿修罗','hbl')
-print("---------------------------")
-print("当前职业所有技能：",total_skill)
-print("房间释放技能组合：",room_skill)
-# 初始化记录技能释放时间使用
-nowTimeMap = {}
-for k in total_skill:
-    sk = k[0]
-    nowTimeMap[sk]= 0
-print('初始化技能记录状态:',nowTimeMap)    
-print("---------------------------")
-
-
-## s释放技能，如果当前地图技能释放完毕则进行平a
-def mapSkill(t_skill,skill):
-    if skill != None:
-
-        for v in skill: 
-            for k in t_skill:
-                # todo 需要确保按键准确对应键盘的ch9329编码,不然会按到一个键位死循环
-                if k[0] == v:
-                    # 释放该技能时间
-                    pressTime = nowTimeMap[v]
-                    costTime = float(k[3])
-                    cd = float(k[1])
-                    if pressTime is not None and pressTime != 0:
-                        t = int(time.time())
-                        # 当前时间已超过上次释放该技能时间，恢复释放技能计时
-                        if t > int(pressTime + cd + costTime):
-                            nowTimeMap[v]=0
-    
-                    if nowTimeMap[v] is None or nowTimeMap[v] == 0:
-                        nowTimeMap[v]= int(time.time())
-                        
-                        return (v,costTime)
-                   
-    return ("X",0)
-
-
-
+# 计算图片的灰度值，返回值越大，灰度值越小
+def calculate_gray_value(img):
+        # 分割RGB通道
+        r, g, b = cv2.split(img)
+        
+        # 转换成数组
+        r1 = np.asarray(r, np.int16)
+        g1 = np.asarray(g, np.int16)
+        b1 = np.asarray(b, np.int16)
+        # 令一种转换方式
+        # r = r.astype(np.int16)
+        # g = g.astype(np.int16)
+        # b = b.astype(np.int16)
+        
+        # 计算各通道之间的方差
+        diff1 = (r1 - g1).var()
+        diff2 = (g1 - b1).var()
+        diff3 = (b1 - r1).var()
+        diff_sum = (diff1 + diff2 + diff3) / 3.0
+        return diff_sum
 
 # 自动打怪
-def autoBeatMonster():
+def autoBeatMonster(jobName,roleInfo:RoleInfo=None):
+    if not GAMEINFO.gameState:
+        logger.warning("游戏未启动，无法进行自动打怪")
+        return
+
+    # total_skill,room_skill = loadJob('女气功')
+    total_skill,room_skill = loadJob(jobName,'hbl')
+    if total_skill == None or len(total_skill) == 0:
+        logger.error("当前职业{}没有识别到技能数据",jobName)
+        return
+    logger.info("---------------------------")
+    logger.info("当前职业所有技能：{}",total_skill)
+    logger.info("房间释放技能组合：{}",room_skill)
+    # 初始化记录技能释放时间使用
+    nowTimeMap = {}
+    for k in total_skill:
+        sk = k[0]
+        nowTimeMap[sk]= 0
+    logger.info('初始化技能记录状态:{}',nowTimeMap)    
+    logger.info("---------------------------")
+
+
+    
+    ## s释放技能，如果当前地图技能释放完毕则进行平a
+    def mapSkill(t_skill,skill):
+        if skill != None:
+
+            for v in skill: 
+                for k in t_skill:
+                    # todo 需要确保按键准确对应键盘的ch9329编码,不然会按到一个键位死循环
+                    if k[0] == v:
+                        # 释放该技能时间
+                        pressTime = nowTimeMap[v]
+                        costTime = float(k[3])
+                        cd = float(k[1])
+                        if pressTime is not None and pressTime != 0:
+                            t = int(time.time())
+                            # 当前时间已超过上次释放该技能时间，恢复释放技能计时
+                            if t > int(pressTime + cd + costTime):
+                                nowTimeMap[v]=0
+        
+                        if nowTimeMap[v] is None or nowTimeMap[v] == 0:
+                            nowTimeMap[v]= int(time.time())
+                            
+                            return (v,costTime)
+                    
+        return ("X",0)
+
     playerSpeed= {'x':0,'y':0,'b':0}
-
-
-
 
     preRoomId = None        #上一个房间ID
 
@@ -119,9 +144,9 @@ def autoBeatMonster():
     OVERFLOW = False
     CHALLENGE_AGAIN = False
     SET_ITEM = False
-
+    
     try:
-        while True:
+        while GAMEINFO.gameState:
             SELECT = False
             SHOP = False
             # 进入后看不到boss的房间用到该变量
@@ -129,6 +154,8 @@ def autoBeatMonster():
 
             # 获取游戏图像
             im_opencv = winApi.getGameImg()
+
+
             # 获取小地图图像
             miniMap = miniMapTools.getMimiMapImg(im_opencv)
             # print('miniMap shape:',miniMap.shape)
@@ -159,7 +186,8 @@ def autoBeatMonster():
             )
             # 识别的图像
             r_image, labels = yolo.detect_image(im_PIL)
-            
+
+
 
             hero = Entity()
             boss = Entity()
@@ -181,8 +209,7 @@ def autoBeatMonster():
                     # 由于标记的样本把人名也框选，所以与课程有区别用bottom做参照
                     y_center = bottom + GAMEINFO.playerHeight
                     hero.setPosition(x_center,y_center,right - left,GAMEINFO.playerHeight,"hero")   
-
-                
+                                    
                 if label == "boss":
                     x_center = left + (right - left) / 2
                     y_center = bottom
@@ -221,8 +248,8 @@ def autoBeatMonster():
 
             if card_size == 4:
                 print('跳过卡牌选择界面')
-                keyboard.send_data("ES")
-                keyboard.release()
+                winApi.keyDown("ES")
+                
                 # 翻盘时间慢这里等待长点
                 time.sleep(2.5)
 
@@ -254,22 +281,36 @@ def autoBeatMonster():
                 
                     # 关闭商店才能操作捡取物品
                     print('关闭商店进行后续操作...')
-                    keyboard.send_data("ES")
-                    keyboard.release()
+                    winApi.keyDown("ES")
                     time.sleep(0.5)
                     continue
                 else:
                     # 如果当前boss图没有物品
                     if len(articles) == 0 and CHALLENGE_AGAIN is True:
+                        
+                        finish_img = cv2.imread('map/img/map_finish.jpg')
+                        loc =  winApi.find_img(im_opencv,finish_img,0.9)
+                        if loc is not None:
+                            # 经测试返回城镇按钮灰度值小于50
+                            gray_value = calculate_gray_value(im_opencv[loc[1]:loc[1]+finish_img.shape[0],loc[0]:loc[0]+finish_img.shape[1]])
+                            if gray_value < 50:
+                                logger.info('------------------返回城镇---------------------')
+                                winApi.keyDown("N6")
+                                # 结束循环
+                                GAMEINFO.gameState = False  
+                                continue  
+
                         print('------------------再次挑战---------------------')
-                        keyboard.send_data("N6")
-                        keyboard.release()
+                        winApi.keyDown("N4")
+                        
                         # 一般要延迟一会才会重新挑战
                         time.sleep(5)
                         # 重置技能释放时间记录
                         for k in total_skill:
                             sk = k[0]
                             nowTimeMap[sk]= 0
+                        # 如果没有疲劳“再次挑战”灰色，返回城镇并结束打怪脚本
+                        
                         continue
                     else:
                         if SET_ITEM is False:
@@ -302,16 +343,18 @@ def autoBeatMonster():
             #新房间
             if preRoomId != room_id:
 
-                print('roomId:',room_id)
+                logger.debug('roomId:{}',room_id)
                 # print('total_skill:',total_skill)
                 # print('---------------')
-                print('room_skill:',room_skill)
+                logger.debug('room_skill:{}',room_skill)
                 x,y = room_id.split("_")
                 x = int(x)
                 y = int(y)
 
                 k = room_skill[x][y]
                 # print('当前房间应放技能:',k)
+                state_skill = []
+                current_room_skill = []
                 if k != None and len(k)>1:
                     if k[0] != None:
                         state_skill = k[0]
@@ -410,7 +453,7 @@ def autoBeatMonster():
 
                 # 防止意外人物不走动
                 if tryCount > maxCount:
-                    winApi.release()
+                    winApi.keyRelease()
                     tryCount = 0
 
                 if boss.y - hero.y < -y_dist:
@@ -423,13 +466,13 @@ def autoBeatMonster():
 
                 if boss.x - hero.x > x_dist:
                     # 当前是跑动状态，要松开键盘
-                    winApi.downDouble('66')
+                    winApi.keyDownDouble('66')
                     tryCount = tryCount+1
                     continue
 
                 if boss.x - hero.x < -x_dist:
                     # 当前是跑动状态，要松开键盘
-                    winApi.downDouble('44')
+                    winApi.keyDownDouble('44')
                     tryCount = tryCount+1
                     continue
                 
@@ -438,11 +481,11 @@ def autoBeatMonster():
                     print('开始攻击boss （%s,%s）， 人物 (%s,%s)  ...' % (boss.x,boss.y,hero.x,hero.y))
                     if hero.x!=0 and boss.x - hero.x > 0:
                         keyboard.send_data("66")
-                        winApi.release()
+                        winApi.keyRelease()
 
                     if hero.x!=0 and boss.x - hero.x < 0:
                         keyboard.send_data("44")
-                        winApi.release()
+                        winApi.keyRelease()
 
                 k,costTime = mapSkill(total_skill,current_room_skill)
                 print('当前图应按键：',k,'按住时间：',costTime)
@@ -450,7 +493,7 @@ def autoBeatMonster():
                 if k == "X":
                     for i in range(3):
                         keyboard.send_data("XX")
-                        winApi.release()
+                        winApi.keyRelease()
                         time.sleep(0.2)
                     continue
 
@@ -459,7 +502,7 @@ def autoBeatMonster():
 
                 keyboard.send_data(k)
                 time.sleep(costTime)
-                winApi.release()
+                winApi.keyRelease()
 
             # 自动打怪
             if len(monsters) > 0:
@@ -478,26 +521,26 @@ def autoBeatMonster():
                 sorted_list = sorted(directions,key=lambda x:x['direction'])
                 monster = sorted_list[0]['monster']
 
-                print('最近怪物坐标 （%s,%s）， 人物坐标 (%s,%s) ' % (monster.x,monster.y,hero.x,hero.y))
+                # print('最近怪物坐标 （%s,%s）， 人物坐标 (%s,%s) ' % (monster.x,monster.y,hero.x,hero.y))
                 # 进行攻击怪物的阈值
                 y_dist = 30
                 x_dist = 180
                 
                 # 防止意外人物不走动
                 if tryCount > maxCount:
-                    winApi.release()
+                    winApi.keyRelease()
                     tryCount = 0
         
                 # 向怪物移动
                 if monster.x - hero.x > x_dist:
                     # 当前是跑动状态，要松开键盘
-                    winApi.downDouble('66')
+                    winApi.keyDownDouble('66')
                     tryCount = tryCount+1
                     continue
 
                 if monster.x - hero.x < -x_dist:
                     # 当前是跑动状态，要松开键盘
-                    winApi.downDouble('44')
+                    winApi.keyDownDouble('44')
                     tryCount = tryCount+1
                     continue
 
@@ -517,11 +560,11 @@ def autoBeatMonster():
                     # 判断调整怪物与人物的朝向
                     if monster.x - hero.x > 0:
                         keyboard.send_data("66")
-                        winApi.release()
+                        winApi.keyRelease()
 
                     if monster.x - hero.x < 0:
                         keyboard.send_data("44")
-                        winApi.release()
+                        winApi.keyRelease()
             
 
                 k,costTime = mapSkill(total_skill,current_room_skill)
@@ -530,7 +573,7 @@ def autoBeatMonster():
                 if k == "X":
                     for i in range(3):
                         keyboard.send_data("XX")
-                        winApi.release()
+                        winApi.keyRelease()
                         time.sleep(0.2)
                     continue
 
@@ -539,7 +582,7 @@ def autoBeatMonster():
 
                 keyboard.send_data(k)
                 time.sleep(costTime)
-                winApi.release()  
+                winApi.keyRelease()  
                 
 
             # 拾取物品
@@ -561,38 +604,50 @@ def autoBeatMonster():
                 print("人物坐标：",(hero.x,hero.y))
                 print('距离人物最近的物品坐标：',(article.x,article.y))
                 # 进行向物品移动的时间
-                x_time,y_time = moveTime([article.x,article.y],[hero.x,hero.y])
+                x_time,y_time = moveTime([article.x+random.randint(-5,5),article.y+random.randint(-5,5)],[hero.x,hero.y])
 
                 # # 向物品移动
                 if article.y - hero.y < 0:
                     keyboard.send_data("88")
                     time.sleep(y_time)
-                    winApi.release()
+                    winApi.keyRelease()
                     
                 else:
                     keyboard.send_data("22")
                     time.sleep(y_time)
-                    winApi.release()
+                    winApi.keyRelease()
                 
                 if article.x - hero.x > 0:
                     keyboard.send_data("66")
-                    winApi.release()
+                    winApi.keyRelease()
                     keyboard.send_data("66")
                     time.sleep(x_time)
-                    winApi.release()
+                    winApi.keyRelease()
                     
                 else:
                     keyboard.send_data("44")
-                    winApi.release()
+                    winApi.keyRelease()
                     keyboard.send_data("44")
                     time.sleep(x_time)
-                    winApi.release()
+                    winApi.keyRelease()
 
                 tryCount = tryCount+1
                 if tryCount > maxCount:
                     print('------------当前拾取失败次数过多,尝试随机走动--------')
                     # 随机移动防止卡死
                     directArr = ['44','22','66','88']
+                    if 'map' in roomExport and room_id in roomExport['map']:
+                        export = roomExport['maps'][room_id]
+                    # 朝着下一地图之外的方向移动
+                    if export['direction'] == 'right':
+                        directArr.remove('44')
+                    elif export['direction'] == 'left':
+                        directArr.remove('66')
+                    elif export['direction'] == 'up':
+                        directArr.remove('22')
+                    elif export['direction'] == 'down':
+                        directArr.remove('88')
+
                     randomDirect = random.choice(directArr)
                     keyboard.send_data(randomDirect)  
                     time.sleep(random.random()*3)
@@ -602,7 +657,7 @@ def autoBeatMonster():
                 if abs(article.x - hero.x) <= 10 and abs(article.y - hero.y) <= 15:
                     time.sleep(0.5)
                     keyboard.send_data("XX")
-                    winApi.release()
+                    winApi.keyRelease()
                     continue
 
             
@@ -667,47 +722,47 @@ def autoBeatMonster():
                     if player_y > export_y:
                         keyboard.send_data('88')  # 按下HELLO
                         time.sleep(y_time)
-                        winApi.release()
+                        winApi.keyRelease()
                     else:
                         keyboard.send_data('22')  # 按下HELLO
                         time.sleep(y_time)
-                        winApi.release()
+                        winApi.keyRelease()
 
                     if player_x > export_x:
                         keyboard.send_data('44')  # 按下HELLO
-                        winApi.release()
+                        winApi.keyRelease()
                         keyboard.send_data('44')  # 按下HELLO
                         time.sleep(x_time)
-                        winApi.release()
+                        winApi.keyRelease()
                     else:
                         keyboard.send_data('66')  # 按下HELLO
-                        winApi.release()
+                        winApi.keyRelease()
                         keyboard.send_data('66')  # 按下HELLO
                         time.sleep(x_time)
-                        winApi.release()
+                        winApi.keyRelease()
 
                 else:
                     if player_x > export_x:
                         keyboard.send_data('44')  # 按下HELLO
-                        winApi.release()
+                        winApi.keyRelease()
                         keyboard.send_data('44')  # 按下HELLO
                         time.sleep(x_time)
-                        winApi.release()
+                        winApi.keyRelease()
                     else:
                         keyboard.send_data('66')  # 按下HELLO
-                        winApi.release()
+                        winApi.keyRelease()
                         keyboard.send_data('66')  # 按下HELLO
                         time.sleep(x_time)
-                        winApi.release()
+                        winApi.keyRelease()
 
                     if player_y > export_y:
                         keyboard.send_data('88')  # 按下HELLO
                         time.sleep(y_time)
-                        winApi.release()
+                        winApi.keyRelease()
                     else:
                         keyboard.send_data('22')  # 按下HELLO
                         time.sleep(y_time)
-                        winApi.release()
+                        winApi.keyRelease()
                 
                 tryCount = tryCount+1
                 if tryCount > maxCount:
@@ -730,11 +785,12 @@ def autoBeatMonster():
     except Exception as e:
         logger.error('打怪运行失败,msg:{}',e) 
         logger.error('出错文件:{},出错行号:{}',e.__traceback__.tb_frame.f_globals["__file__"],e.__traceback__.tb_lineno)      
+        return False
 
-    winApi.__del__()    
+    # winApi.__del__()    
     # 关闭所有窗口
     cv2.destroyAllWindows()
-
+    return True
 
 if __name__ == '__main__':
-    autoBeatMonster()
+    autoBeatMonster('阿修罗')

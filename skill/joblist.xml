@@ -2,7 +2,7 @@
 
 <root>
     <!-- 还是称号作为特征最精准 -->
-    <job name="阿修罗" height="111">
+    <job name="阿修罗" height="138">
         <skills>skill/total_skill.xml</skills>
         <roomskill room_name="hbl">skill/current_axiuluo_hbl_skill.xml</roomskill>
         <roomskill  room_name="bydt">skill/current_axiuluo_bydt_skill.xml</roomskill>

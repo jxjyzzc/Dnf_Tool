@@ -157,6 +157,55 @@ class DataComm:
         port.ser.write(packet)  # 将命令代码写入串口
         return True  # 如果成功，则返回True，否则引发异常
     
+    """
+        鼠标滚动
+
+        @param direct: 1为向上滚动，-1为向下滚动
+        @param w_num: 滚动的齿数, 1 个字节滚轮滚动齿数
+            0x01---0x7F，表示屏幕向上滚动
+            0x81---0xFF，表示屏幕向下滚动，单位：齿数
+        @return: None
+    """
+    def send_wheel_data(self,w_num:int, port: serial = serial) -> bool:
+         # 将字符转写为数据包
+        HEAD = b'\x57\xAB'  # 帧头
+        ADDR = b'\x00'  # 地址
+        CMD = b'\x05'  # 命令
+        LEN = b'\x05'  # 数据长度
+        DATA = bytearray(b'\x01')  # 数据
+
+        # 鼠标按键
+        DATA.append(0)
+        # x坐标
+        DATA.append(0)
+         # y坐标
+        DATA.append(0)
+
+        if w_num > 0:
+            DATA += w_num.to_bytes(1, byteorder='big', signed=True)
+        else:
+            DATA += (0 - abs(w_num)).to_bytes(1, byteorder='big', signed=True)
+
+        # 分离HEAD中的值，并计算和
+        HEAD_hex_list = list(HEAD)
+        HEAD_add_hex_list = sum(HEAD_hex_list)
+
+        # 分离DATA中的值，并计算和
+        DATA_hex_list = list(DATA)
+        DATA_add_hex_list = sum(DATA_hex_list)
+
+        try:
+            SUM = sum([HEAD_add_hex_list, int.from_bytes(ADDR, byteorder='big'),
+                       int.from_bytes(CMD, byteorder='big'), int.from_bytes(LEN, byteorder='big'),
+                       DATA_add_hex_list]) % 256  # 校验和
+        except OverflowError:
+            print("int too big to convert")
+            return False
+        packet = HEAD + ADDR + CMD + LEN + DATA + bytes([SUM])  # 数据包
+        # print('send_data_relatively packet:',packet.hex().upper())
+        port.ser.write(packet)  # 将命令代码写入串口
+        return True  # 如果成功，则返回True，否则引发异常    
+
     """ 
     功能：move_to_basic
     

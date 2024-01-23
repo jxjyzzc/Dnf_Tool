@@ -53,22 +53,14 @@ class HblMiniMapTools():
         # print('人物小地图坐标：',x,y)
 
         #小方格宽高
-        width = self.minimap_w / 5
-        height = self.minimap_h / 5
+        width = round(self.minimap_w / 5, 0)
+        height = round(self.minimap_h / 5, 0)
         # print('小方格宽高 %d,%d' %(width,height))
 
         row = x // width
-        if row > 0:
-            if x % row > 0 and x % row < width:
-                row = math.floor(row) + 1
-                # print("当前人物所在地图房间号row：",row)
-
-
+        
         column = y // height
-        if column > 0:
-            if y % column > 0 and y % column < height:
-                column = math.floor(column) + 1
-                # print("当前人物所在地图房间号col：",column)
+        
         
         if column>=5:
             print('未找到房间！！')

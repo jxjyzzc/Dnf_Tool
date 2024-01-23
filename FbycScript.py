@@ -410,7 +410,7 @@ def autoBeatMonster():
 
                 # 防止意外人物不走动
                 if tryCount > maxCount:
-                    winApi.release()
+                    winApi.keyRelease()
                     tryCount = 0
 
                 if boss.y - hero.y < -y_dist:
@@ -423,13 +423,13 @@ def autoBeatMonster():
 
                 if boss.x - hero.x > x_dist:
                     # 当前是跑动状态，要松开键盘
-                    winApi.downDouble('66')
+                    winApi.keyDownDouble('66')
                     tryCount = tryCount+1
                     continue
 
                 if boss.x - hero.x < -x_dist:
                     # 当前是跑动状态，要松开键盘
-                    winApi.downDouble('44')
+                    winApi.keyDownDouble('44')
                     tryCount = tryCount+1
                     continue
                 
@@ -438,11 +438,11 @@ def autoBeatMonster():
                     print('开始攻击boss （%s,%s）， 人物 (%s,%s)  ...' % (boss.x,boss.y,hero.x,hero.y))
                     if hero.x!=0 and boss.x - hero.x > 0:
                         keyboard.send_data("66")
-                        winApi.release()
+                        winApi.keyRelease()
 
                     if hero.x!=0 and boss.x - hero.x < 0:
                         keyboard.send_data("44")
-                        winApi.release()
+                        winApi.keyRelease()
 
                 k,costTime = mapSkill(total_skill,current_room_skill)
                 print('当前图应按键：',k,'按住时间：',costTime)
@@ -450,7 +450,7 @@ def autoBeatMonster():
                 if k == "X":
                     for i in range(3):
                         keyboard.send_data("XX")
-                        winApi.release()
+                        winApi.keyRelease()
                         time.sleep(0.2)
                     continue
 
@@ -459,7 +459,7 @@ def autoBeatMonster():
 
                 keyboard.send_data(k)
                 time.sleep(costTime)
-                winApi.release()
+                winApi.keyRelease()
 
             # 自动打怪
             if len(monsters) > 0:
@@ -485,19 +485,19 @@ def autoBeatMonster():
                 
                 # 防止意外人物不走动
                 if tryCount > maxCount:
-                    winApi.release()
+                    winApi.keyRelease()
                     tryCount = 0
         
                 # 向怪物移动
                 if monster.x - hero.x > x_dist:
                     # 当前是跑动状态，要松开键盘
-                    winApi.downDouble('66')
+                    winApi.keyDownDouble('66')
                     tryCount = tryCount+1
                     continue
 
                 if monster.x - hero.x < -x_dist:
                     # 当前是跑动状态，要松开键盘
-                    winApi.downDouble('44')
+                    winApi.keyDownDouble('44')
                     tryCount = tryCount+1
                     continue
 
@@ -517,11 +517,11 @@ def autoBeatMonster():
                     # 判断调整怪物与人物的朝向
                     if monster.x - hero.x > 0:
                         keyboard.send_data("66")
-                        winApi.release()
+                        winApi.keyRelease()
 
                     if monster.x - hero.x < 0:
                         keyboard.send_data("44")
-                        winApi.release()
+                        winApi.keyRelease()
             
 
                 k,costTime = mapSkill(total_skill,current_room_skill)
@@ -530,7 +530,7 @@ def autoBeatMonster():
                 if k == "X":
                     for i in range(3):
                         keyboard.send_data("XX")
-                        winApi.release()
+                        winApi.keyRelease()
                         time.sleep(0.2)
                     continue
 
@@ -539,7 +539,7 @@ def autoBeatMonster():
 
                 keyboard.send_data(k)
                 time.sleep(costTime)
-                winApi.release()  
+                winApi.keyRelease()  
                 
 
             # 拾取物品
@@ -567,26 +567,26 @@ def autoBeatMonster():
                 if article.y - hero.y < 0:
                     keyboard.send_data("88")
                     time.sleep(y_time)
-                    winApi.release()
+                    winApi.keyRelease()
                     
                 else:
                     keyboard.send_data("22")
                     time.sleep(y_time)
-                    winApi.release()
+                    winApi.keyRelease()
                 
                 if article.x - hero.x > 0:
                     keyboard.send_data("66")
-                    winApi.release()
+                    winApi.keyRelease()
                     keyboard.send_data("66")
                     time.sleep(x_time)
-                    winApi.release()
+                    winApi.keyRelease()
                     
                 else:
                     keyboard.send_data("44")
-                    winApi.release()
+                    winApi.keyRelease()
                     keyboard.send_data("44")
                     time.sleep(x_time)
-                    winApi.release()
+                    winApi.keyRelease()
 
                 tryCount = tryCount+1
                 if tryCount > maxCount:
@@ -602,7 +602,7 @@ def autoBeatMonster():
                 if abs(article.x - hero.x) <= 10 and abs(article.y - hero.y) <= 15:
                     time.sleep(0.5)
                     keyboard.send_data("XX")
-                    winApi.release()
+                    winApi.keyRelease()
                     continue
 
             
@@ -667,47 +667,47 @@ def autoBeatMonster():
                     if player_y > export_y:
                         keyboard.send_data('88')  # 按下HELLO
                         time.sleep(y_time)
-                        winApi.release()
+                        winApi.keyRelease()
                     else:
                         keyboard.send_data('22')  # 按下HELLO
                         time.sleep(y_time)
-                        winApi.release()
+                        winApi.keyRelease()
 
                     if player_x > export_x:
                         keyboard.send_data('44')  # 按下HELLO
-                        winApi.release()
+                        winApi.keyRelease()
                         keyboard.send_data('44')  # 按下HELLO
                         time.sleep(x_time)
-                        winApi.release()
+                        winApi.keyRelease()
                     else:
                         keyboard.send_data('66')  # 按下HELLO
-                        winApi.release()
+                        winApi.keyRelease()
                         keyboard.send_data('66')  # 按下HELLO
                         time.sleep(x_time)
-                        winApi.release()
+                        winApi.keyRelease()
 
                 else:
                     if player_x > export_x:
                         keyboard.send_data('44')  # 按下HELLO
-                        winApi.release()
+                        winApi.keyRelease()
                         keyboard.send_data('44')  # 按下HELLO
                         time.sleep(x_time)
-                        winApi.release()
+                        winApi.keyRelease()
                     else:
                         keyboard.send_data('66')  # 按下HELLO
-                        winApi.release()
+                        winApi.keyRelease()
                         keyboard.send_data('66')  # 按下HELLO
                         time.sleep(x_time)
-                        winApi.release()
+                        winApi.keyRelease()
 
                     if player_y > export_y:
                         keyboard.send_data('88')  # 按下HELLO
                         time.sleep(y_time)
-                        winApi.release()
+                        winApi.keyRelease()
                     else:
                         keyboard.send_data('22')  # 按下HELLO
                         time.sleep(y_time)
-                        winApi.release()
+                        winApi.keyRelease()
                 
                 tryCount = tryCount+1
                 if tryCount > maxCount:

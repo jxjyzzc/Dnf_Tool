@@ -7,7 +7,7 @@ import serial,ch9329Comm
 _config_path = os.path.dirname(__file__)
 _idx = _config_path.rfind(os.sep)
 # MY_DLL = os.path.join(_config_path[:_idx], 'dll', 'msdk_64.dll')
-serial.ser = serial.Serial('COM6', 9600)  # 开启串口
+serial.ser = serial.Serial('COM4', 9600)  # 开启串口
 keyboard = ch9329Comm.keyboard.DataComm()
 
 

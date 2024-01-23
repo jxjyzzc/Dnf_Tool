@@ -1,3 +1,15 @@
+import os,sys
+root_dir = os.path.dirname(os.path.abspath(__file__))
+project_dir = os.path.join(root_dir, "..")
+## parenddir 是当前代码文件所在目录的父目录
+parenddir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
+# sys.path.append(parenddir)
+from configobj import ConfigObj
+
+# *** 配置文件预处理 *** #
+path = os.path.dirname(os.path.dirname(__file__)) + "/config/game_info.ini"
+config = ConfigObj(path,encoding='UTF8')
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Time    : 2023/7/17 22:58
@@ -45,7 +57,7 @@ class GameInfo(object):
                 # 当前房间怪物数量
                 self.roomMonsters = 0
                 # 初始房间位置
-                self.playerMap =(2,0)
+                self.playerMap =(4,1)
                 # boss房间位置
                 self.bossMap = (2,6)
                 # 游戏难度
@@ -59,5 +71,21 @@ class GameInfo(object):
                 # 开启自动切换人物
                 self.autoSwitchEnabled = False
 
+         # 读取配置文件信息
+        def queryJobList(self):
+                if 'jobList' in config['finishedRole']:
+                        self.joblist = config['finishedRole']['jobList'] 
+                        # print('game_info.ini load配置jobList：',config['finishedRole']['jobList'])
+                return self.joblist         
+
+        def modifyJobList(self,jobList):
+                config['finishedRole']['jobList'] = jobList
+                self.joblist = jobList
+                config.write()                   
+                print('game_info.ini更新jobList',config['finishedRole']['jobList'])
+
 GAMEINFO = GameInfo()
+
+  
+
 print("基本信息初始化完成。")

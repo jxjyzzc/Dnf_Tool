@@ -6,6 +6,7 @@
 
 import cv2
 import numpy as np
+from loguru import logger
 
 class SIFTLoc():
 
@@ -14,15 +15,21 @@ class SIFTLoc():
         # 创建FLANN匹配器
         self.matcher = cv2.FlannBasedMatcher()
 
-    def setMaxImg(self,path):
+    def setMaxNArrayImg(self, img:np.ndarray):
+        self.maxMap_img = img
+    def setMaxImg(self,path:str):
         self.maxMap_img = cv2.imread(path)
 
     def setMinImg(self, img):
         self.h_img = img #cv2.imread(img)
 
-    def getSiftLoc(self,max_path,min_img):
+    def getSiftLoc(self,max_img,min_img):
         try:
-            self.setMaxImg(max_path)
+            if isinstance(max_img,str):
+                self.setMaxImg(max_img)
+            elif isinstance(max_img, np.ndarray):
+                self.setMaxNArrayImg(max_img)
+                
             self.setMinImg(min_img)
             # 在图像中检测特征点和计算描述符
             keypoints1, descriptors1 = self.sift.detectAndCompute(self.maxMap_img, None)
@@ -54,14 +61,34 @@ class SIFTLoc():
             # 将图2融合在图1的最佳匹配位置上
             result = cv2.addWeighted(self.maxMap_img, 0.5, aligned_image2, 0.5, 0)
             # print("M:",M)
-            
+            # cv2.imshow('result',result)
+            # cv2.waitKey(0)
+
             #输出最佳匹配位置
             # print("Best match position: ({}, {})".format(M[0, 2], M[1, 2]))
             #返回X,Y坐标
             return M[0, 2], M[1, 2]
         except Exception as e:
+            if max_img is not None and isinstance(max_img, np.ndarray):
+                cv2.imwrite('test/img/max_img_error.jpg',max_img)
+            if min_img is not None and isinstance(min_img, np.ndarray):  
+                cv2.imwrite('test/img/min_img_error.jpg',min_img)
             print("特征检测遇到错误",e)
+            logger.error('出错文件:{},出错行号:{}',e.__traceback__.tb_frame.f_globals["__file__"],e.__traceback__.tb_lineno)      
             return None,None
         
         
 siftLoc = SIFTLoc()
+
+if __name__ == '__main__':
+    max_img = cv2.imread(r'test/img/max_img_error.jpg')
+    # min_img = cv2.imread(r'test/img/min_img_error.jpg')
+    min_img = cv2.imread(r'startUI/img/map_list/02.jpg')
+
+    cv2.imshow('max_img',max_img)
+    cv2.imshow('min_img',min_img)
+    cv2.waitKey(0)
+
+    position = siftLoc.getSiftLoc(max_img, min_img)
+    print("Best match position: {}".format(position))
+    # print("Best match position: ({}, {})".format(position(0), position(1)))

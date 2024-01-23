@@ -2,194 +2,125 @@
 
 import cv2
 import numpy as np
-
-class RecRectangle():
-
-    def __init__(self,bg):
-        self.background = bg
-        pass
+import math
 
 
-    def cross_point(self,line1, line2):  # 计算交点函数
-        #是否存在交点
-        point_is_exist=False
-        x=0
-        y=0
-        x1 = line1[0]  # 取四点坐标
-        y1 = line1[1]
-        x2 = line1[2]
-        y2 = line1[3]
 
-        x3 = line2[0]
-        y3 = line2[1]
-        x4 = line2[2]
-        y4 = line2[3]
+"""
+    标注装备方框，一般史诗能标注上即可
+    :param im_opencv: 图片opencv数组
+    :param max_y: 最大y坐标
+    return: 按左上顶点为起点，顺时针，获取外接矩形的四个顶点的坐标
+"""
+def labelEquipment(im_opencv,max_y):
+    crop_img = im_opencv[0:int(max_y),:]
+    # cv2.imshow('crop_img',crop_img)
+    # cv2.waitKey(0)
 
-        if (x2 - x1) == 0:
-            k1 = None
-        else:
-            k1 = (y2 - y1) * 1.0 / (x2 - x1)  # 计算k1,由于点均为整数，需要进行浮点数转化
-            b1 = y1 * 1.0 - x1 * k1 * 1.0  # 整型转浮点型是关键
+    rects=[]
 
-        if (x4 - x3) == 0:  # L2直线斜率不存在操作
-            k2 = None
-            b2 = 0
-        else:
-            k2 = (y4 - y3) * 1.0 / (x4 - x3)  # 斜率存在操作
-            b2 = y3 * 1.0 - x3 * k2 * 1.0
+    black_thr = 100
 
-        if k1 is None:
-            if not k2 is None:
-                x = x1
-                y = k2 * x1 + b2
-                point_is_exist=True
-        elif k2 is None:
-            x=x3
-            y=k1*x3+b1
-        elif not k2==k1:
-            x = (b2 - b1) * 1.0 / (k1 - k2)
-            y = k1 * x * 1.0 + b1 * 1.0
-            point_is_exist=True
-        return point_is_exist,[x, y]
+    #转换为灰度图
+    gray = cv2.cvtColor(crop_img, cv2.COLOR_RGB2GRAY)
 
-    # 去除图片背景
-    def remove_background(self,img):
-       
-        # 转换到HSV
-        # hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        # cv2.imshow('hsv', hsv)
-        # cv2.waitKey(0)
+    #转为二值图
+    ret, binary = cv2.threshold(gray, black_thr, 255, cv2.THRESH_BINARY)
+    # cv2.imshow('binary',binary)
 
-        # 设定蓝色的阈值
-        # lower_blue = np.array([100, 43, 50])
-        # upper_blue = np.array([124, 255, 255])
+    # 膨胀算法的色块大小
+    h, w = binary.shape
+    hors_k = int(math.sqrt(w)*1.2)
+    vert_k = int(math.sqrt(h)*1.2)
+
+    # 白底黑字，膨胀白色横向色块，抹去文字和竖线，保留横线
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (hors_k,1))
+    hors = ~cv2.dilate(binary, kernel, iterations = 1) # 迭代两次，尽量抹去文本横线，变反为黑底白线
+
+    # 白底黑字，膨胀白色竖向色块，抹去文字和横线，保留竖线
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1,vert_k))
+    verts = ~cv2.dilate(binary, kernel, iterations = 1) # 迭代两次，尽量抹去文本竖线，变反为黑底白线
+
+    # 横线竖线检测结果合并
+    borders = cv2.bitwise_or(hors,verts)
+
+    # cv2.imshow('borders',borders)
+    # cv2.waitKey(0)
+    img2 = None
+    contours, hierarchy = cv2.findContours(borders,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    for cnt in contours:
+        if cv2.contourArea(cnt)>550 and cv2.contourArea(cnt)<1000:
+            max_rect = cv2.minAreaRect(cnt)    # cnt这里是我们上个步骤中的到的面积最大的轮廓
     
-        # 根据阈值构建掩膜
-        # mask = cv2.inRange(hsv, lower_blue, upper_blue)
-    
-        # 对元图像和掩膜进行位运算
-        # res = cv2.bitwise_and(img, img, mask=mask)
-    
-        # 显示图像
-        # cv2.imshow('mask', mask)
-        # cv2.imshow('res', res)
-        # cv2.waitKey(0)
-       
-    #    mask = np.zeros(img.shape[:2], np.uint8)
-
-    #    bgdModel = np.zeros((1, 65), np.float64)
-    #    fgdModel = np.zeros((1, 65), np.float64)
-    #    rect = (0, 0, img.shape[1], img.shape[0])
-    #    cv2.grabCut(img, mask, rect, bgdModel, fgdModel, 5, cv2.GC_INIT_WITH_RECT)
-        
-    #    mask2 = np.where((mask==2)|(mask==0), 0, 1).astype('uint8')
-    #    diff = img * mask2[:,:, np.newaxis]
-    # 前景图像与背景图像相减
-        diff = cv2.absdiff(self.background, img)
-        # cv2.imshow('diff', diff)
-        # cv2.waitKey(0)
-        return diff
-       
-
-
-    # 识别当前选择人物的矩形
-    def rectangle_recognition(self,img):
-        front_img = self.remove_background(img)
-        
-        # 转灰度图
-        gray=cv2.cvtColor(front_img,cv2.COLOR_BGR2GRAY)
-        # 利用cv2.minMaxLoc寻找到图像中最亮和最暗的点
-        (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(gray)
-        # 在图像中绘制结果
-        # cv2.circle(front_img, maxLoc, 5, (255, 0, 0), 2)
-        # cv2.imshow('front_img', front_img)
-        # cv2.waitKey(0)
-
-        #高斯模糊
-        gray=cv2.GaussianBlur(gray,(3,3),0)
-        gray = cv2.medianBlur(gray,3)
-        
-        # cv2.imshow('gray', gray)
-        # cv2.waitKey(0)
-       # 使用Canny边缘检测算法找出边缘，并将结果存储在edges变量中。
-        edges = cv2.Canny(gray, 165, 275)
-        # cv2.imshow('Edges1', edges)
-        # cv2.waitKey(0)
-        
-         # 边缘膨胀
-        # kernel = np.ones((4, 4), np.uint8)
-        # cv2.dilate(edges, kernel, 3)
-        # cv2.imshow('Edges2', edges)
-        # cv2.waitKey(0)
-
-
-        #霍夫变换
-        lines = cv2.HoughLinesP(edges, 1, np.pi / 180, 110, minLineLength=110, maxLineGap=10)
-        print('lines:',lines)
-
-        
-        lines1 =lines[:, 0, :] # 提取为二维
-        for x1, y1, x2, y2 in lines1[:]:
-            cv2.line(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
-
-        # cv2.imshow('line1', img)
-        # cv2.waitKey(0)
-
-
-        cross_points = []
-        for x1, y1, x2, y2 in lines1[:]:
-            for x3,y3,x4,y4 in lines1[:]:
-                point_is_exist, [x, y]= self.cross_point([x1, y1, x2, y2],[x3,y3,x4,y4])
-                if point_is_exist:
-                    # cv2.circle(img,(int(x),int(y)),5,(0,0,255),3)
-                    cross_points.append([x, y])
-
-        rectangle_points = []
-        # 如果交点数大于4个，并且有2组交点的x坐标差在127左右，y坐标差在206左右，则认为是矩形
-        if len(cross_points) >= 4:
+            # 返回的 max_rect  就是下图中的rect，里面包括外接矩形的中心点，宽和高，以及偏移角度
+            max_box = cv2.boxPoints(max_rect)
+            max_box = np.int0(max_box)
+            img2 = cv2.drawContours(im_opencv,[max_box],0,(0,255,0),2)
             
-            cross_points_np = np.array(cross_points)
-            # print('cross_points=',cross_points)
-            # print('cross_points_np=',cross_points_np)
-            # print('np.roll(cross_points_np[:, 0], 1)',np.roll(cross_points_np[:, 0], 1))
+            # 外接矩形的四个顶点坐标
+            pts1 = np.int0(max_box)
+            # 根据4个点坐标变为(x,y,width,height) 的形式返回
+            rect = cv2.boundingRect(pts1)
+            # print('rect:',rect)
+            # 按左上顶点为起点，顺时针，获取外接矩形的四个顶点的坐标
+            rects.append(rect)
 
-            # 筛选x坐标差在123到128之间且y坐标差值为0的点
-            # 筛选y坐标差在205到210之间且x坐标差值为0的点
-            # 筛选条件
-            x_diff_condition = (np.abs(cross_points_np[:, 0] - np.roll(cross_points_np[:, 0], 1)) >= 123) & \
-                (np.abs(cross_points_np[:, 0] - np.roll(cross_points_np[:, 0], 1)) <= 128) 
-            y_diff_condition = (np.abs(cross_points_np[:, 1] - np.roll(cross_points_np[:, 1], 1)) >= 205) & \
-                (np.abs(cross_points_np[:, 1] - np.roll(cross_points_np[:, 1], 1)) <= 210) 
+    # if img2 is not None:
+    #     cv2.imshow('img2',img2)
+    #     cv2.waitKey(0)
 
-            # print('x_diff_condition:',x_diff_condition)
-            # print('y_diff_condition:',y_diff_condition)
-            # 应用筛选条件
-            filtered_points = cross_points_np[ x_diff_condition | y_diff_condition ]
+    return rects
 
-            # 转为二维数组
-            rectangle_points = filtered_points.reshape(-1, 2)
+from typing import Tuple
+import math
 
-            # print('rectangle_points:',rectangle_points)
-
+class Rectangle:
+    def __init__(self, left: int, top: int, right: int, bottom: int):
+        self.left = left
+        self.top = top
+        self.right = right
+        self.bottom = bottom
         
+        # 计算并存储中心点坐标
+        self.center = (int((self.left + self.right) / 2), int((self.top + self.bottom) / 2))
 
-        for (x,y) in rectangle_points:
-            print('rectangle points:',(x,y))
-            cv2.circle(img, (int(x), int(y)), 5, (0, 0, 255), 3)   
+    def center_distance(self, other_center: Tuple[int, int]) -> float:
+        """计算当前矩形中心点与给定中心点之间的欧氏距离"""
+        return math.sqrt((self.center[0] - other_center[0])**2 + (self.center[1] - other_center[1])**2)
 
-        return rectangle_points                             
+    def is_center_near(self, other: 'Rectangle', distance_threshold: float) -> bool:
+        """
+        判断当前矩形的中心点是否在另一个矩形的中心点附近
+        @param other: 另一个矩形
+        @param distance_threshold: 距离阈值，单位同矩形坐标单位
+        @return: 是否在指定距离阈值内
+        """
+        other_center = other.center
+        return self.center_distance(other_center) <= distance_threshold
+
+    '''
+    原方法保留，但不再用于根据中心点附近的判断
+    def is_contained_in(self, other: 'Rectangle') -> bool:
+        return (self.left >= other.left and
+                self.top >= other.top and
+                self.right <= other.right and
+                self.bottom <= other.bottom)
+    '''
 
 
+
+                                 
+# 导出类
+# __all__ = ['Rectangle']
+    
 
 if __name__ == '__main__':
-    #图片路径
-    bg = cv2.imread('startUI/img/rolebackgroud.jpg')
-    bg = bg[85:546,0:782]
-    rectangle = RecRectangle(bg)
-    imgPath=r'test/img/roleSelect6.jpg'
-    img=cv2.imread(imgPath)
-    roi_img = img[85:546,0:782]
-    rectangle.rectangle_recognition(roi_img)
+    # 示例用法：
+    rect1 = Rectangle(0, 0, 10, 10)
+    rect2 = Rectangle(5, 5, 15, 15)
+    distance_threshold = 3
 
-    cv2.imshow('Result', img)
-    cv2.waitKey (0)
+    if rect1.is_center_near(rect2, distance_threshold):
+        print("矩形1的中心点在矩形2的中心点附近")
+    else:
+        print("矩形1的中心点不在矩形2的中心点附近")

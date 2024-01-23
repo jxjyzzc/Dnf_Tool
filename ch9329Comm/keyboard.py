@@ -45,6 +45,7 @@ class DataComm:
                                        "BB": b"\x05",
                                        "NN": b"\x11",
                                        "MM": b"\x10",
+                                       ",,": b"\x36",
                                        "44": b"\x50",
                                        "66": b"\x4F",
                                        "88": b"\x52",
@@ -59,8 +60,9 @@ class DataComm:
                                        "SP": b"\x2C",
                                        # esc
                                        "ES": b"\x29",
-                                       # 小键盘6
-                                       "N6":b"\x5C",
+                                       # 小键盘4
+                                       "N4":b"\x5C",
+                                       "N6":b"\x5E",
                                        "N0":b"\x62",
                                        # 右ctrl
                                        "CR": b"\xE4",
