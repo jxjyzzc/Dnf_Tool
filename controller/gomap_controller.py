@@ -34,6 +34,16 @@ def indexConfigROI(left,top,right,bottom,postionList):
                 return i
     return -1    
 
+def resetPostionList():
+    powerList = GAMEINFO.powerlist
+    if len(powerList)>0 and all([power == 0 for power in powerList]):
+            postionList = []
+            powerList = []
+            GAMEINFO.gameLoop = False
+            GAMEINFO.saveCurRoleIndex(-1)
+            GAMEINFO.modifyRolePosition(postionList,powerList)
+    pass
+
 def markOrRemovezeroPower(postionList,removeIndex):
     if removeIndex>-1:
         powerList = GAMEINFO.powerlist
@@ -43,11 +53,7 @@ def markOrRemovezeroPower(postionList,removeIndex):
         powerList[removeIndex] = 0
         logger.debug('目标power标记为0----->{}',removeIndex)
         # 如果powerList所有元素都为0，则移除postionList及powerList所有元素
-        if all([power == 0 for power in powerList]):
-            postionList = []
-            powerList = []
-            GAMEINFO.gameLoop = False
-            GAMEINFO.saveCurRoleIndex(-1)
+        resetPostionList()
         GAMEINFO.modifyRolePosition(postionList,powerList)
         
     postionList,powerList = GAMEINFO.queryJobList()
@@ -66,8 +72,6 @@ def afterAutoBeatMonster(roleInfo,postionList):
     logger.debug('postionList:{}',postionList)
     if len(postionList) == 0:
         logger.info('角色列表为空，退出循环')
-        GAMEINFO.gameLoop = False
-        GAMEINFO.saveCurRoleIndex(-1)
         return "finish"    
     # timer.cancel()  
     return "next"  
@@ -150,7 +154,7 @@ if __name__=="__main__":
             nextFlag = markOrRemovezeroPower(postionList,removeIndex)
 
             if nextFlag == "finish":
-                continue
+                break
             
             time.sleep(3)
             roleResult = roleInfo.getBasicRoleInfo()
