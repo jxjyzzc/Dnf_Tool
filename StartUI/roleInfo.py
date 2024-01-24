@@ -109,15 +109,7 @@ class RoleInfo():
         # print('power:',result)
         return roleResult
 
-    """
-        切换角色
-    """
-    def changeRole(self):
-        postionList = GAMEINFO.joblist
-        logger.info('开始切换角色。。。')
-        full_img = winApi.getGameImg()
-        winApi.randomDelay(0.3,0.5)
-
+    def goToStartGame(self,full_img):
         # 判断是否在选择角色界面 
         job_postion_list = startInfoRead.startGameInfo(full_img)
         esc_press = False
@@ -140,7 +132,21 @@ class RoleInfo():
                     full_img = winApi.getGameImg()
                     # cv2.imshow('full_img',full_img)
                     # cv2.waitKey(0)
+        return job_postion_list            
+
+    """
+        切换角色
+    """
+    def changeRole(self):
+        postionList = GAMEINFO.joblist
+        powerList = GAMEINFO.powerlist
+        logger.info('开始切换角色。。。')
+        full_img = winApi.getGameImg()
+        winApi.randomDelay(0.3,0.5)
+
+        job_postion_list = self.goToStartGame(full_img)
         
+        full_img = winApi.getGameImg()
         if len(job_postion_list) == 0:        
             job_postion_list = startInfoRead.startGameInfo(full_img)
         # logger.debug('job_postion_list:{}',job_postion_list)
@@ -148,7 +154,7 @@ class RoleInfo():
         tryCount = 0 
         # 切换角色需要排除当前选中角色
         while tryCount < 10:
-            cur_res =startInfoRead.read_curr_role_info(full_img)
+            cur_res = startInfoRead.read_curr_role_info(full_img)
             if len(cur_res)>0:
                 tryCount = 0
                 break
@@ -157,21 +163,34 @@ class RoleInfo():
             time.sleep(2)
         # print('cur_res:',cur_res)
         cur_roi = cur_res[0][0]
-        logger.debug('cur_postion:{}',cur_roi)
+        logger.debug('当前选中角色区域坐标:{}',cur_roi)
 
-        if len(job_postion_list)>0:
+        # if len(job_postion_list)>0:
             # cur_role = cur_res[0][-1]
-            
+        if len(postionList)>0:
+
             cur_rect = Rectangle(cur_roi[0],cur_roi[1],cur_roi[2],cur_roi[3])
             # 获取要切换的角色
-            for job in job_postion_list:
-                # job = ast.literal_eval(job)
-                # print('job:',job)
-                tmp_cect = Rectangle(job[0][0],job[0][1],job[0][2],job[0][3]) 
+
+            for (cur_index,job) in enumerate(postionList):
+            # for job in job_postion_list:
+                if job is None or str(job).isspace():
+                    continue
+                logger.debug('i:{},job:{},powerVal:{}',cur_index,job,powerList[cur_index])
+                # 跳过没有疲劳的角色
+                if cur_index in powerList and int(powerList[cur_index]) == 0:
+                    logger.debug('当前角色{}疲劳标识，跳过',job)
+                    continue
+                # logger.debug('job:',job)
+                job = ast.literal_eval(str(job))
+                tmp_postion = job
+                tmp_rect = Rectangle(*tmp_postion)
+                # tmp_cect = Rectangle(job[0][0],job[0][1],job[0][2],job[0][3]) 
                 # 不在当前坐标的角色进行切换
-                if not cur_rect.is_center_near(tmp_cect,3):
+                if not cur_rect.is_center_near(tmp_rect,3):
                     next_position = job
-                    job_x,job_top,job_right,job_bottom = GAMEINFO.gameRect['x']+job[0][0],GAMEINFO.gameRect['y']+job[0][1],GAMEINFO.gameRect['x']+job[0][2],GAMEINFO.gameRect['y']+job[0][3]
+                    # job_x,job_top,job_right,job_bottom = GAMEINFO.gameRect['x']+job[0][0],GAMEINFO.gameRect['y']+job[0][1],GAMEINFO.gameRect['x']+job[0][2],GAMEINFO.gameRect['y']+job[0][3]
+                    job_x,job_top,job_right,job_bottom = GAMEINFO.gameRect['x']+tmp_postion[0],GAMEINFO.gameRect['y']+tmp_postion[1],GAMEINFO.gameRect['x']+tmp_postion[2],GAMEINFO.gameRect['y']+tmp_postion[3]
                     job_center_x = int((job_x+job_right)/2)
                     job_center_y = int((job_top+job_bottom)/2)
                     logger.debug('找到要切换的角色坐标：{}'.format(job))
@@ -180,6 +199,8 @@ class RoleInfo():
                     winApi.keyDown('SP')
                     winApi.randomDelay(1.3,1.5)
                    
+                    GAMEINFO.saveCurRoleIndex(cur_index)
+
                     return (cur_roi[0],cur_roi[1],cur_roi[2],cur_roi[3]),next_position
 
         return (cur_roi[0],cur_roi[1],cur_roi[2],cur_roi[3]),None

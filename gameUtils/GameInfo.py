@@ -68,6 +68,8 @@ class GameInfo(object):
                 self.screen = {"w":0,"h":0}
                 # 自动切换人物列表
                 self.joblist = []
+
+                self.powerlist = []
                 # 开启自动切换人物
                 self.autoSwitchEnabled = False
 
@@ -75,14 +77,25 @@ class GameInfo(object):
         def queryJobList(self):
                 if 'jobList' in config['finishedRole']:
                         self.joblist = config['finishedRole']['jobList'] 
+                        self.powerlist = config["finishedRole"]['powerList']
                         # print('game_info.ini load配置jobList：',config['finishedRole']['jobList'])
-                return self.joblist         
+                return self.joblist ,self.powerlist        
 
-        def modifyRolePosition(self,jobList):
+        def modifyRolePosition(self,jobList,powerList):
                 config['finishedRole']['jobList'] = jobList
+                config['finishedRole']['powerList'] = powerList
                 self.joblist = jobList
+                self.powerlist = powerList
                 config.write()                   
-                print('game_info.ini更新jobList',config['finishedRole']['jobList'])
+                print('game_info.ini更新 jobList',config['finishedRole']['jobList'])
+                print('game_info.ini更新 powerList',config['finishedRole']['powerList'])
+
+        def saveCurRoleIndex(self,curRoleIndex):
+              config['finishedRole']['curRoleIndex'] = curRoleIndex   
+              config.write()
+
+        def getCurRoleIndex(self):
+              return config['finishedRole']['curRoleIndex']             
 
 GAMEINFO = GameInfo()
 

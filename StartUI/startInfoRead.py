@@ -80,7 +80,7 @@ def read_curr_role_info(img: str):
 
 """判断是否是在角色选择界面"""
 def isInStart(img):
-    isStart,coordinate = find_one_picd(img,'startUI/img/start_game.jpg',0.8)
+    isStart,coordinate = find_one_picd(img,'startUI/img/start_game.jpg',0.9)
     return isStart
 
 """
@@ -99,32 +99,45 @@ def startGameInfo(max_img,job_img='startUI/img/job_list/阿修罗.jpg'):
         for coordinate in coordinates:
             # print('找到职业图片坐标:',list(coordinate[0]),list(coordinate[1]))
             # cv_imread_roi('test/img/角色选择.jpg',[[81.0, 272.0], [152.0, 272.0], [152.0, 289.0], [81.0, 289.0]])
-            left,top,right,bottom = (coordinate[0][0]-30,coordinate[0][1]-22,coordinate[1][0]+30,coordinate[1][1]+22)
+            left,top,right,bottom = (coordinate[0][0]-30,coordinate[0][1]-20,coordinate[1][0]+30,coordinate[1][1]+20)
             tmp_img =  cv_imread_roi(max_img,left,top,right,bottom)
+            # 假设 cur_img 是一个 4 通道的 numpy 数组
+            if tmp_img.shape[2] == 4:  # 检查是否有 4 个通道
+                tmp_img = cv2.cvtColor(tmp_img, cv2.COLOR_RGBA2BGR)  # 将 RGBA 转换为 BGR
+            bg = cv_imread_roi('startUI/img/rolebackgroud.jpg', left, top, right, bottom)
+            tmp_img = remove_background(bg,tmp_img)
             # cv2.imshow('tmp_img', tmp_img)
             # cv2.waitKey(0)
             
             texts = ocrUtil.detectImgOcrText(tmp_img)
             print('texts:',texts)
+            # text1 = None
             if len(texts)==0:
                 continue
-
-            text1 = texts[0].replace('级',' ')
+            # elif len(texts)==3:
+            #     text1 = texts[0].replace('级',' ')
+            # elif len(texts)==4:
+            #     text1 = (texts[0]+texts[1]).replace('级',' ')    
             text3 = texts[-1].replace(',', '').replace('.', '').replace('，','')
             # print('text:',text1,'text3:',text3)
-            # 海伯伦门槛号
-            if '110' in text1 and int(text3) > 35000:
-                job_postion_list.append(([left,top,right,bottom],text1))
+            # 名字不能精准识别，放弃对人物名称识别了
+            # if '110' in text1 and int(text3) > 35000:
+                # job_postion_list.append(([left,top,right,bottom],text1))
+            if text3 is not None and int(text3) > 35000:
+                job_postion_list.append(([left,top,right,bottom],text3))
     return job_postion_list        
 
 if __name__ == '__main__':
     full_img = cv_imread('test/img/角色选择1.jpg')
-    job_postion_list = startGameInfo(full_img)
-    print('job_postion_list:',job_postion_list)
-    for job_postion in job_postion_list:
-        roi_img = cv_imread_roi(full_img,job_postion[0],job_postion[1],job_postion[2],job_postion[3])
-        cv2.imshow('roi_img', roi_img)
-        cv2.waitKey(2000)
+    # job_postion_list = startGameInfo(full_img)
+    # print('job_postion_list:',job_postion_list)
+    # for job_postion in job_postion_list:
+    #     roi_img = cv_imread_roi(full_img,job_postion[0][1],job_postion[0][1],job_postion[0][2],job_postion[0][3])
+    #     cv2.imshow('roi_img', roi_img)
+    #     cv2.waitKey(2000)
+
+    inStart = isInStart(full_img)
+    print('inStart:',inStart)
 
     # for i in range(1,8):
     #     img_path = 'test/img/roleSelect{i}.jpg'.format(i=i)

@@ -707,6 +707,9 @@ def autoBeatMonster(jobName,roleInfo:RoleInfo=None):
                     print("识别坐标过大,重新识别")
                     continue
 
+                if new_room_id not in roomExport['maps']:
+                    continue  
+
                 export = roomExport['maps'][new_room_id]
                 export_x = int(export['export_x'])
                 export_y = int(export['export_y'])
