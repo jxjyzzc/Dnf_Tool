@@ -24,40 +24,42 @@ import ast
 
 def indexConfigROI(left,top,right,bottom,postionList):
     rect =  Rectangle(left,top,right,bottom)  
-    if type(postionList) == list:
-        for i in range(len(postionList)):
-            postion = ast.literal_eval(postionList[i])
-            logger.debug('left,top,right,bottom:{}',(left,top,right,bottom))
-            logger.debug('postion:{}',*postion)
-            if rect.is_center_near(Rectangle(*postion),5):
-                logger.info('当前区域在配置文件区域目标：{}',postion)
-                return i
+    logger.debug('left,top,right,bottom:{}',(left,top,right,bottom))
+    logger.debug('postionList:{}',postionList)
+    
+    for i in range(len(postionList)):
+        postion = ast.literal_eval(str(postionList[i]))
+        
+        logger.debug('postion:{}',*postion)
+        if rect.is_center_near(Rectangle(*postion),5):
+            logger.info('当前区域在配置文件区域目标：{}',postion)
+            return i
     return -1    
 
-def resetPostionList():
+
+def markOrRemovezeroPower(postionList,removeIndex):
     powerList = GAMEINFO.powerlist
+    if int(removeIndex)>-1:
+        # postionList.remove(removePostion)
+        if powerList is None or len(powerList)==0:
+            return None,None
+        powerList[removeIndex] = 0
+        GAMEINFO.saveCurRoleIndex(removeIndex)
+        logger.debug('目标power{}标记为0....',removeIndex)
+    
+     # 如果powerList所有元素都为0，则移除postionList及powerList所有元素    
     if len(powerList)>0 and all([power == 0 for power in powerList]):
             postionList = []
             powerList = []
             GAMEINFO.gameLoop = False
             GAMEINFO.saveCurRoleIndex(-1)
-            GAMEINFO.modifyRolePosition(postionList,powerList)
-    pass
+            GAMEINFO.modifyRolePosition([],[])
+            return []
 
-def markOrRemovezeroPower(postionList,removeIndex):
-    if removeIndex>-1:
-        powerList = GAMEINFO.powerlist
-        # postionList.remove(removePostion)
-        if powerList is None or len(powerList)==0:
-            return None,None
-        powerList[removeIndex] = 0
-        logger.debug('目标power标记为0----->{}',removeIndex)
-        # 如果powerList所有元素都为0，则移除postionList及powerList所有元素
-        resetPostionList()
-        GAMEINFO.modifyRolePosition(postionList,powerList)
+    GAMEINFO.modifyRolePosition(postionList,powerList)
         
     postionList,powerList = GAMEINFO.queryJobList()
-    logger.debug('重新加载还剩角色列表:{}',postionList,',powerList:',powerList)
+    logger.debug('重新加载还剩角色列表:{}',postionList,',powerList:{}',powerList)
     return postionList
 
 def afterAutoBeatMonster(roleInfo,postionList):
@@ -68,13 +70,8 @@ def afterAutoBeatMonster(roleInfo,postionList):
    
     logger.info('index {} 疲劳为0,角色列表中移除该角色',removeIndex)
     postionList = markOrRemovezeroPower(postionList,removeIndex)
-
-    logger.debug('postionList:{}',postionList)
-    if len(postionList) == 0:
-        logger.info('角色列表为空，退出循环')
-        return "finish"    
-    # timer.cancel()  
-    return "next"  
+    return postionList
+    
 
 def initPostionConfig(postionList,powerList): 
     # 当前未选定角色，可以初始化
@@ -88,6 +85,10 @@ def initPostionConfig(postionList,powerList):
         
         if len(job_postion_list) > 0:
             postionList = [job[0] for job in job_postion_list]
+        else:
+            postionList = []
+            GAMEINFO.saveCurRoleIndex(-1)
+
         powerList = ['156']*len(postionList)
 
         logger.info('初始化postionList成功,postionList:{}',job_postion_list)
@@ -133,11 +134,16 @@ if __name__=="__main__":
             else:
                 break    
 
-    roleResult = roleInfo.getBasicRoleInfo()
-    logger.debug('postion_list:{},roleResult:{}',postionList,roleResult)
+    postionList,powerList = GAMEINFO.queryJobList()
+    if postionList is None and len(postionList):
+        logger.warning('postionList为空,初始化角色失败')
+        exit()
+
+    logger.debug('postion_list:{}',postionList)
     print('===============开始循环脚本==================')
-    
+    roleResult = roleInfo.getBasicRoleInfo()
     while GAMEINFO.gameLoop:
+        
         logger.info('roleResult:{}',roleResult)
         if len(roleResult['level'])==0:
             logger.info('===============未找到图内特征,开始选择角色=================')
@@ -151,9 +157,10 @@ if __name__=="__main__":
             # logger.debug('pre modify jobList:{}',jobList)
             removeIndex = indexConfigROI(*curPostion,postionList)
             logger.info('{} 疲劳为0,角色列表中移除该角色',removeIndex)
-            nextFlag = markOrRemovezeroPower(postionList,removeIndex)
+            postionList = markOrRemovezeroPower(postionList,removeIndex)
 
-            if nextFlag == "finish":
+            if len(postionList) == 0:
+                logger.info('===============可刷图角色列表为空,刷图结束==================')
                 break
             
             time.sleep(3)
@@ -186,8 +193,14 @@ if __name__=="__main__":
                     # 出图分解装备
                     if isFinish:
                         time.sleep(2)
-                        afterAutoBeatMonster(roleInfo,postionList)
-                        continue
+                        postionList = afterAutoBeatMonster(roleInfo,postionList)
+                        
+                        if len(postionList) > 0:
+                            roleResult = roleInfo.getBasicRoleInfo()
+                            continue
+                        else:
+                            logger.info('===============可刷图角色列表为空,刷图结束==================')
+                            break    
                 else:
                     logger.warning('进入普通地图失败')
         time.sleep(0.5)

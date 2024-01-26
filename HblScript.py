@@ -631,7 +631,6 @@ def autoBeatMonster(jobName,roleInfo:RoleInfo=None):
                     time.sleep(x_time)
                     winApi.keyRelease()
 
-                tryCount = tryCount+1
                 if tryCount > maxCount:
                     print('------------当前拾取失败次数过多,尝试随机走动--------')
                     # 随机移动防止卡死
@@ -651,16 +650,17 @@ def autoBeatMonster(jobName,roleInfo:RoleInfo=None):
                     randomDirect = random.choice(directArr)
                     keyboard.send_data(randomDirect)  
                     time.sleep(random.random()*3)
-                    tryCount = 0    
+                    tryCount = 0        
 
                 # 人物移动到拾取范围时
-                if abs(article.x - hero.x) <= 5 and abs(article.y - hero.y) <= 5:
+                if abs(article.x - hero.x) <= 10 and abs(article.y - hero.y) <= 10:
                     time.sleep(0.5)
                     keyboard.send_data("XX")
                     winApi.keyRelease()
+                    tryCount = tryCount+1
                     continue
 
-            
+                    
 
             # # 自动过图,测速完成后再过图，不然计算速度不准刷图效果极差
             if playerSpeed['b'] == 1 and len(monsters) == 0  and len(articles) == 0:

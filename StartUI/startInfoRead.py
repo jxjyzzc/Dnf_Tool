@@ -10,6 +10,7 @@ from tool.ocrutil import cv_imread,cv_imread_roi,find_one_picd,find_multiple_pic
 from tool.ocrutil import ocrUtil
 import cv2
 import numpy as np
+import random
 
 """
     去除图片背景
@@ -28,8 +29,8 @@ def find_curr_role_picd(img: str):
     if isCurr:
         # left,top,right,bottom
         (curr_left,curr_bottom) = (coordinate[2],coordinate[5])
-        curr_top = curr_bottom - 49
-        curr_right = curr_left + 130
+        curr_top = curr_bottom - 49-random.randint(-2,2)
+        curr_right = curr_left + 130+random.randint(-2,2)
         # print('当前角色左下角起始点:',(curr_left,curr_bottom))
         # print('当前角色矩形坐标:',(curr_left,curr_top,curr_right,curr_bottom))
 
@@ -58,9 +59,10 @@ def read_curr_role_info(img: str):
 
     # cv2.imshow('cur_img', image)
     # cv2.waitKey(2000)
+    # cv2.destroyAllWindows()
     result = ocrUtil.detectImgOcr(image)
-    # print('result:',result)
-    # print('result size:',len(result[0]))
+    print('read_curr_role_info result:',result)
+    print('read_curr_role_info result size:',len(result[0]))
 
     boxes = [detection[0] for line in result for detection in line]
     txts = [detection[1][0] for line in result for detection in line] 

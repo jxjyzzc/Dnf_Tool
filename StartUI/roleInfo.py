@@ -140,6 +140,7 @@ class RoleInfo():
     def changeRole(self):
         postionList = GAMEINFO.joblist
         powerList = GAMEINFO.powerlist
+        cur_index = GAMEINFO.getCurRoleIndex()
         logger.info('开始切换角色。。。')
         full_img = winApi.getGameImg()
         winApi.randomDelay(0.3,0.5)
@@ -155,13 +156,14 @@ class RoleInfo():
         # 切换角色需要排除当前选中角色
         while tryCount < 10:
             cur_res = startInfoRead.read_curr_role_info(full_img)
+            print('cur_res:',cur_res,',TryCount:',tryCount)
             if len(cur_res)>0:
                 tryCount = 0
                 break
             tryCount+=1
             full_img = winApi.getGameImg()
             time.sleep(2)
-        # print('cur_res:',cur_res)
+        print('cur_res:',cur_res)
         cur_roi = cur_res[0][0]
         logger.debug('当前选中角色区域坐标:{}',cur_roi)
 
@@ -187,7 +189,7 @@ class RoleInfo():
                 tmp_rect = Rectangle(*tmp_postion)
                 # tmp_cect = Rectangle(job[0][0],job[0][1],job[0][2],job[0][3]) 
                 # 不在当前坐标的角色进行切换
-                if not cur_rect.is_center_near(tmp_rect,3):
+                if not cur_rect.is_center_near(tmp_rect,5):
                     next_position = job
                     # job_x,job_top,job_right,job_bottom = GAMEINFO.gameRect['x']+job[0][0],GAMEINFO.gameRect['y']+job[0][1],GAMEINFO.gameRect['x']+job[0][2],GAMEINFO.gameRect['y']+job[0][3]
                     job_x,job_top,job_right,job_bottom = GAMEINFO.gameRect['x']+tmp_postion[0],GAMEINFO.gameRect['y']+tmp_postion[1],GAMEINFO.gameRect['x']+tmp_postion[2],GAMEINFO.gameRect['y']+tmp_postion[3]
