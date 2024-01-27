@@ -22,7 +22,7 @@ class GameInfo(object):
                 # 版本号
                 self.Version = 1.2
                 # 本地yolo地址
-                self.yoloUrl = "http://127.0.0.1:5000/upload_image"
+                self.yoloUrl = "http://127.0.0.1:5000/predict/yolov5"
                 # ch9329串口号
                 self.comPort = ""
                 # True为开启了辅助线程

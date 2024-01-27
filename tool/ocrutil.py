@@ -1,4 +1,4 @@
-from paddleocr import PaddleOCR, draw_ocr
+
 import cv2
 import numpy as np
 from loguru import logger
@@ -120,11 +120,29 @@ def find_multiple_picd( img, findimg, threshold: float):
     # cv2.waitKey(0)
     return coordinates
 
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+from PIL import Image
+
 class OcrUtil:
 
     def __init__(self):
-        self.ocr = PaddleOCR(det_model_dir='ocr/model/det', rec_model_dir='ocr/model/rec', rec_char_dict_path=None, cls_model_dir='ocr/model/cls',
-                        use_angle_cls=False, enable_mkldnn = True)
+        
+        # 设置重试策略
+        retry_strategy = Retry(
+            total=5,
+            backoff_factor=0.1,
+            status_forcelist=[ 500, 502, 503, 504 ],
+            method_whitelist=["HEAD", "GET", "POST", "OPTIONS"]
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+
+
+        self.ocr_req_url = 'http://127.0.0.1:5000/ocr/paddleocr'
+        self.ocr_req = requests.Session()
+        self.ocr_req.mount("http://", adapter)
+        self.ocr_req.mount("https://", adapter)
         return
 
 
@@ -135,9 +153,20 @@ class OcrUtil:
         return: ocr 位置信息，文本，置信率
     '''    
     def detectImgOcr(self, img):
-        # 模型路径下必须含有model和params文件
-       
-        result = self.ocr.ocr(img, cls=True)
+        img_file_path = 'data/tmp_ocr.png'
+        im_PIL = Image.fromarray(img)
+        # profile = ImageCms.createProfile("sRGB")
+        im_PIL.save(img_file_path)
+        # im_PIL.show()
+
+        files = {'image': open(img_file_path, 'rb')}
+        response = self.ocr_req.post(self.ocr_req_url,files=files)
+        status_code = response.status_code
+        if status_code == 200:
+            result = response.json()['data']
+        else:
+            result = []   
+        logger.debug('result:{},status_code:{}',result,status_code)
         # for line in result:
         #     print(line)
         
@@ -166,17 +195,19 @@ class OcrUtil:
         return: ocr文本
     '''    
     def detectImgOcrText(self, img,line_num:int=None):
-        try:
-            result = self.ocr.ocr(img, cls=True)
-        except Exception as e:
-            ocr_path = 'test/img/ocr_error.jpg'
-            cv2.imwrite(ocr_path, img)
-            try:
-                result = self.ocr.ocr(cv_imread(ocr_path), cls=True)
-                os.remove(ocr_path)
-            except Exception as e:
-                logger.error('出错文件:{},出错行号:{},msg:{}',e.__traceback__.tb_frame.f_globals["__file__"],e.__traceback__.tb_lineno,e.msg)
-                return None
+        img_file_path = 'data/tmp_ocr.png'
+        cv2.imwrite(img_file_path,img)
+        files = {'image': open(img_file_path, 'rb')}
+        response = self.ocr_req.post(self.ocr_req_url,files=files)
+        status_code = response.status_code
+        if status_code == 200:
+            result = response.json()['data']
+        else:
+            result = []
+        logger.debug('result:{},status_code:{}',result,status_code)
+
+        if len(result[0])<0:
+            return []
 
         txts = [detection[1][0] for line in result for detection in line]
         if line_num is None:
@@ -185,8 +216,6 @@ class OcrUtil:
             return txts[line_num] if len(txts)>0 else None
        
  
-
-
     """
         提取文本中数字
     """

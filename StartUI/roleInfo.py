@@ -489,7 +489,7 @@ class RoleInfo():
             
             # for txt in txts:
             #     print('txt:',txt)
-            if len(txts)>0 and txts[0] == tar_map_str:
+            if txts is not None and len(txts)>0 and txts[0] == tar_map_str:
                 logger.info('找到目标地图，准备进入')
                 break
             else:
@@ -515,5 +515,6 @@ class RoleInfo():
 if __name__ == '__main__':
     GAMEINFO.queryJobList()                                                      
     roleInfo = RoleInfo()
-    # roleInfo.dismantlingEquipment()
-    roleInfo.changeRole()
+    # roleInfo.getBasicRoleInfo()
+    roleInfo.dismantlingEquipment()
+    # roleInfo.changeRole()

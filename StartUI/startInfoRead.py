@@ -51,6 +51,8 @@ def find_curr_role_picd(img: str):
 # 读取当前选择的角色信息
 def read_curr_role_info(img: str):
     cur_img,cur_roi = find_curr_role_picd(img)
+    if cur_img is None:
+        return []
     # print('cur_img',cur_img)
     # 截取图片进行识别
     tmp_jpg_path = 'tmp.jpg'
@@ -61,8 +63,13 @@ def read_curr_role_info(img: str):
     # cv2.waitKey(2000)
     # cv2.destroyAllWindows()
     result = ocrUtil.detectImgOcr(image)
+
+    new_result = []
+
     print('read_curr_role_info result:',result)
     print('read_curr_role_info result size:',len(result[0]))
+    if len(result[0]) < 2:
+        return new_result
 
     boxes = [detection[0] for line in result for detection in line]
     txts = [detection[1][0] for line in result for detection in line] 
@@ -70,9 +77,9 @@ def read_curr_role_info(img: str):
     text3 = txts[-1].replace(',', '').replace('.', '').replace('，','')
     txts = [text1,txts[1],text3]
 
-    new_result = []
+    
     # 开始界面人物信息只有3行
-    if len(result[0])==3:
+    if len(result[0])>=3:
         for i in range(len(boxes)):
             if txts[i] != '':
                 new_result.append((cur_roi,txts[i]))
@@ -84,6 +91,13 @@ def read_curr_role_info(img: str):
 def isInStart(img):
     isStart,coordinate = find_one_picd(img,'startUI/img/start_game.jpg',0.9)
     return isStart
+
+def is_integer_instance(s):
+    try:
+        num = int(s)
+        return isinstance(num, int)
+    except ValueError:
+        return False
 
 """
     开始游戏界面信息读取
@@ -114,7 +128,7 @@ def startGameInfo(max_img,job_img='startUI/img/job_list/阿修罗.jpg'):
             texts = ocrUtil.detectImgOcrText(tmp_img)
             print('texts:',texts)
             # text1 = None
-            if len(texts)==0:
+            if len(texts)<2:
                 continue
             # elif len(texts)==3:
             #     text1 = texts[0].replace('级',' ')
@@ -125,7 +139,7 @@ def startGameInfo(max_img,job_img='startUI/img/job_list/阿修罗.jpg'):
             # 名字不能精准识别，放弃对人物名称识别了
             # if '110' in text1 and int(text3) > 35000:
                 # job_postion_list.append(([left,top,right,bottom],text1))
-            if text3 is not None and int(text3) > 35000:
+            if text3 is not None and is_integer_instance(text3) and int(text3) > 35000:
                 job_postion_list.append(([left,top,right,bottom],text3))
     return job_postion_list        
 

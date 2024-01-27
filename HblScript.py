@@ -12,7 +12,7 @@ from loguru import logger
 # import sys
 # sys.path.append(".") 
 
-from yolo.yolo import YOLO,YOLO_ONNX
+# from yolo.yolo import YOLO,YOLO_ONNX
 
 from map.HblMiniMapTools import miniMapTools
 from gameUtils.SIFTLoc import siftLoc
@@ -27,14 +27,20 @@ from gameUtils.WindowsAPI import winApi
 from skill.LoadData import loadJob
 from startUI import RoleInfo
 
-# keyboard.send_data('HHEELLLLOO')  # 按下HELLO
-# keyboard.release()  # 松开
-
-# mdc = mouse.DataComm()
-# mdc.send_data_absolute(500,500)
+import requests
+# from requests.adapters import HTTPAdapter
+# from urllib3.util.retry import Retry
+# # 设置重试策略
+# retry_strategy = Retry(
+#     total=5,
+#     backoff_factor=0.1,
+#     status_forcelist=[ 500, 502, 503, 504 ],
+#     method_whitelist=["HEAD", "GET", "POST", "OPTIONS"]
+# )
+# adapter = HTTPAdapter(max_retries=retry_strategy)
 
 #实例化yolo
-yolo = YOLO()
+# yolo = YOLO()
 # 获取游戏窗口
 winApi.getHwnd()
 
@@ -84,7 +90,7 @@ def calculate_gray_value(img):
         return diff_sum
 
 # 自动打怪
-def autoBeatMonster(jobName,roleInfo:RoleInfo=None):
+def autoBeatMonster(jobName):
     if not GAMEINFO.gameState:
         logger.warning("游戏未启动，无法进行自动打怪")
         return
@@ -105,6 +111,9 @@ def autoBeatMonster(jobName,roleInfo:RoleInfo=None):
     logger.info('初始化技能记录状态:{}',nowTimeMap)    
     logger.info("---------------------------")
 
+    yolo_req = requests.Session()
+    # yolo_req.mount("http://", adapter)
+    # yolo_req.mount("https://", adapter)
 
     
     ## s释放技能，如果当前地图技能释放完毕则进行平a
@@ -180,13 +189,20 @@ def autoBeatMonster(jobName,roleInfo:RoleInfo=None):
             #修改通道数
             im_opencv = cv2.cvtColor(im_opencv, cv2.COLOR_BGR2RGB)
 
+            
             #转换数据类型
-            im_PIL = Image.fromarray(
-                im_opencv
-            )
-            # 识别的图像
-            r_image, labels = yolo.detect_image(im_PIL)
+            im_PIL = Image.fromarray(im_opencv)
 
+            # icc_profile_path = "data/sRGB.icc"
+            request_img_path = f"data/room_id_{room_id}.jpg"
+            im_PIL.save(request_img_path)
+            files = {'image': open(request_img_path, 'rb')}
+            request_url = 'http://127.0.0.1:5000/predict/yolov5'
+
+
+            # 识别的图像
+            response = yolo_req.post(request_url,files=files)
+            labels = response.json()
 
 
             hero = Entity()
@@ -195,7 +211,7 @@ def autoBeatMonster(jobName,roleInfo:RoleInfo=None):
             articles = []
             card_size = 0
             for _ in labels:
-                label = _['label'].decode('utf-8')
+                label = _['label']
                 top = int(_['top'])
                 left = int(_['left'])
                 bottom = int(_['bottom'])
@@ -796,4 +812,5 @@ def autoBeatMonster(jobName,roleInfo:RoleInfo=None):
     return True
 
 if __name__ == '__main__':
+    GAMEINFO.gameState = True
     autoBeatMonster('阿修罗')

@@ -104,6 +104,23 @@ class Bag:
         return None
 
 
+ #   图片预处理
+    def imgPreprocessing(self,pre_img):
+        height, width, deep = pre_img.shape
+        gray = cv2.cvtColor(pre_img, cv2.COLOR_BGR2GRAY) # cv2.COLOR_BGR2GRAY 将BGR格式转换成灰度图片
+        dst = np.zeros((height, width, 1), np.uint8) #生成一张纯黑色图
+        
+        for i in range(0, height):  # 反相 转白底黑字
+            for j in range(0, width):
+                grayPixel = gray[i, j]
+                dst[i, j] = 255 - grayPixel
+        #走完这一步，已经实现了 转白底黑字，但是白色低背景不是最亮的
+        #再用cv2.threshold进行二值化，使黑色部分更黑，白的更白
+        ret, img = cv2.threshold(dst, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+        image = np.array(img)
+        return image
+
     """
         移动到背包装备栏指定位置，并返回当前背包装备等级
         bag_index 要访问的背包序号 1开始
@@ -161,8 +178,8 @@ class Bag:
         # cv2.waitKey(0)
 
         
-        rand_x = self.app_head[0]+bag_x+random.randint(0,4)
-        rand_y = self.app_head[1]+bag_y+random.randint(0,2)
+        rand_x = self.app_head[0]+bag_x+random.randint(-2,2)
+        rand_y = self.app_head[1]+bag_y+random.randint(-1,1)
         logger.debug('移动到第{}格背包坐标:({},{})',bag_index,rand_x,rand_y)
 
         self.mouse.send_data_absolute(int(rand_x), int(rand_y))
@@ -191,12 +208,12 @@ class Bag:
             if findFlag:
                 equiq_level_left,equiq_leveL_top,equiq_leveL_bottom = coordinate[2],coordinate[3],coordinate[-1]
                 logger.debug('等级信息坐标equiq_level_left:{},equiq_leveL_top:{},equiq_leveL_bottom:{}',equiq_level_left,equiq_leveL_top,equiq_leveL_bottom)
-                equiq_level_img = equiq_img[equiq_leveL_top:equiq_leveL_bottom+3,equiq_level_left:equiq_level_left+77]
+                equiq_level_img = equiq_img[equiq_leveL_top:equiq_leveL_bottom+2,equiq_level_left:equiq_level_left+75]
                 
                 if equiq_level_img[0].shape[0] > 0:
                     equiq_level_img = cv2.cvtColor(equiq_level_img, cv2.COLOR_BGR2RGB)
-                    image = np.array(equiq_level_img)
-                    # image = self.imgPreprocessing(equiq_level_img)
+                    # image = np.array(equiq_level_img)
+                    image = self.imgPreprocessing(equiq_level_img)
                     # cv2.imshow('equiq_level_img',image)
                     # cv2.waitKey(2000)
 

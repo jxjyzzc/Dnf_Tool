@@ -114,7 +114,7 @@ if __name__=="__main__":
     #    timer.start()
        time.sleep(2)
        import HblScript as hbl
-       isFinish =  hbl.autoBeatMonster('阿修罗',roleInfo)
+       isFinish =  hbl.autoBeatMonster('阿修罗')
        # 出图分解装备
        if isFinish:
            time.sleep(2)
@@ -189,7 +189,7 @@ if __name__=="__main__":
 
                     # timer.start()
                     import HblScript as hbl
-                    isFinish =  hbl.autoBeatMonster('阿修罗',roleInfo)
+                    isFinish =  hbl.autoBeatMonster('阿修罗')
                     # 出图分解装备
                     if isFinish:
                         time.sleep(2)
