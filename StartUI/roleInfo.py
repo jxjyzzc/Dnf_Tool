@@ -153,17 +153,24 @@ class RoleInfo():
         # logger.debug('job_postion_list:{}',job_postion_list)
 
         tryCount = 0 
+        tryChangeCount = 0
         # 切换角色需要排除当前选中角色
         while tryCount < 10:
             cur_res = startInfoRead.read_curr_role_info(full_img)
-            print('cur_res:',cur_res,',TryCount:',tryCount)
+            print('cur_res TryCount:',tryCount)
             if len(cur_res)>0:
                 tryCount = 0
                 break
             tryCount+=1
+            tryChangeCount += 1
             full_img = winApi.getGameImg()
             time.sleep(2)
-        print('cur_res:',cur_res)
+            if tryChangeCount > 5:
+                logger.debug('识别当前角色失败，切换下一个角色进行校验')
+                winApi.keyDown('66')
+                tryCount,tryChangeCount = 0,0
+                
+        logger.debug('cur_res:{}',cur_res)
         cur_roi = cur_res[0][0]
         logger.debug('当前选中角色区域坐标:{}',cur_roi)
 

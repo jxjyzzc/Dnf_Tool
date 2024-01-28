@@ -124,6 +124,32 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from PIL import Image
+import base64
+import io
+
+def ndarray2base64(image_ndarray):
+    # 将numpy数组转为JPEG格式的bytes
+    # 如果是OpenCV读取的BGR格式，需要先转换为RGB
+    if len(image_ndarray.shape) > 2 and image_ndarray.shape[2] == 3:  # 针对BGR格式图像
+        image_rgb = cv2.cvtColor(image_ndarray, cv2.COLOR_BGR2RGB)
+    else:
+        image_rgb = image_ndarray
+
+    # 转换并压缩为JPEG格式，并保存到BytesIO对象中
+    _, img_encoded = cv2.imencode('.jpg', image_rgb, [cv2.IMWRITE_JPEG_QUALITY, 90])  # 获取编码后的图像数据（numpy数组）
+    buffered = io.BytesIO()
+    buffered.write(img_encoded.tobytes())  # 将编码后的图像数据写入BytesIO对象
+
+    # 回到开头位置以便获取完整的bytes数据
+    buffered.seek(0)
+
+    # 获取BytesIO对象中的bytes数据
+    image_bytes = buffered.getvalue()
+
+    # 将bytes数据编码为base64字符串
+    image_b64_str = base64.b64encode(image_bytes).decode('utf8')
+
+    return image_b64_str
 
 class OcrUtil:
 
@@ -153,19 +179,33 @@ class OcrUtil:
         return: ocr 位置信息，文本，置信率
     '''    
     def detectImgOcr(self, img):
-        img_file_path = 'data/tmp_ocr.png'
-        im_PIL = Image.fromarray(img)
+        # img_file_path = 'data/tmp_ocr.png'
+        # im_PIL = Image.fromarray(img)
         # profile = ImageCms.createProfile("sRGB")
-        im_PIL.save(img_file_path)
+        # im_PIL.save(img_file_path)
         # im_PIL.show()
+        # cv2.imwrite(img_file_path, img)
 
-        files = {'image': open(img_file_path, 'rb')}
-        response = self.ocr_req.post(self.ocr_req_url,files=files)
+        # files = {'image': open(img_file_path, 'rb')}
+        basestr = ndarray2base64(img)
+        # logger.debug('basestr:{},',basestr)
+
+        response = self.ocr_req.post(self.ocr_req_url, data={'base64str': basestr})
+        # response = self.ocr_req.post(self.ocr_req_url,files=files)
         status_code = response.status_code
         if status_code == 200:
             result = response.json()['data']
         else:
-            result = []   
+            result = []
+        
+        
+        scores = [detection[1][1] for line in result for detection in line]  # Nested loop added
+        # 如果scores中存在分数低于0.8的，就返回None
+        min_scores = [score for score in scores if score < 0.8]
+        if len(min_scores)>1:
+            logger.warning('识别的置信率有低于0.8的,不进行识别')
+            return []
+
         logger.debug('result:{},status_code:{}',result,status_code)
         # for line in result:
         #     print(line)
@@ -195,25 +235,19 @@ class OcrUtil:
         return: ocr文本
     '''    
     def detectImgOcrText(self, img,line_num:int=None):
-        img_file_path = 'data/tmp_ocr.png'
-        cv2.imwrite(img_file_path,img)
-        files = {'image': open(img_file_path, 'rb')}
-        response = self.ocr_req.post(self.ocr_req_url,files=files)
-        status_code = response.status_code
-        if status_code == 200:
-            result = response.json()['data']
-        else:
-            result = []
-        logger.debug('result:{},status_code:{}',result,status_code)
-
-        if len(result[0])<0:
-            return []
+        result = self.detectImgOcr(img)
 
         txts = [detection[1][0] for line in result for detection in line]
+        scores = [detection[1][1] for line in result for detection in line]  # Nested loop added
+
+        if len(txts) == 0:
+            return None
+            
         if line_num is None:
             return txts
         else:
-            return txts[line_num] if len(txts)>0 else None
+            return txts[line_num] if scores[line_num]>0.8 else None
+
        
  
     """

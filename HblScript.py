@@ -600,6 +600,10 @@ def autoBeatMonster(jobName):
                 time.sleep(costTime)
                 winApi.keyRelease()  
                 
+            # 海伯伦要跳过物品的地图判断,把物品数量置空强行跳过该图
+            if room_id == '1_3':
+                article = []
+
 
             # 拾取物品
             if len(monsters) == 0 and len(articles) > 0:
