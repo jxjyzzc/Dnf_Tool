@@ -197,7 +197,7 @@ def autoBeatMonster(jobName):
             request_img_path = f"data/room_id_{room_id}.jpg"
             im_PIL.save(request_img_path)
             files = {'image': open(request_img_path, 'rb')}
-            request_url = 'http://127.0.0.1:5000/predict/yolov5'
+            request_url = GAMEINFO.yoloUrl
 
 
             # 识别的图像
