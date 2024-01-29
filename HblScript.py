@@ -602,7 +602,7 @@ def autoBeatMonster(jobName):
                 
             # 海伯伦要跳过物品的地图判断,把物品数量置空强行跳过该图
             if room_id == '1_3':
-                article = []
+                articles = []
 
 
             # 拾取物品

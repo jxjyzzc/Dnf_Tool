@@ -109,11 +109,11 @@ class RoleInfo():
         # print('power:',result)
         return roleResult
 
-    def goToStartGame(self,full_img):
-        # 判断是否在选择角色界面 
-        job_postion_list = startInfoRead.startGameInfo(full_img)
+    def goToStartGame(self):
+        full_img = winApi.getGameImg()
+        isStart = startInfoRead.isInStart(full_img)
         esc_press = False
-        if len(job_postion_list)== 0: 
+        if not isStart: 
            esc_press = True
         
         if esc_press:
@@ -132,7 +132,7 @@ class RoleInfo():
                     full_img = winApi.getGameImg()
                     # cv2.imshow('full_img',full_img)
                     # cv2.waitKey(0)
-        return job_postion_list            
+        pass            
 
     """
         切换角色
@@ -145,14 +145,21 @@ class RoleInfo():
         full_img = winApi.getGameImg()
         winApi.randomDelay(0.3,0.5)
 
-        job_postion_list = self.goToStartGame(full_img)
+        self.goToStartGame()
         
-        full_img = winApi.getGameImg()
-        if len(job_postion_list) == 0:        
-            job_postion_list = startInfoRead.startGameInfo(full_img)
+        job_postion_list = []
+        tryCount = 0 
+        while tryCount < 10:
+            if len(job_postion_list) == 0:   
+                full_img = winApi.getGameImg()     
+                job_postion_list = startInfoRead.startGameInfo(full_img)
+                tryCount+=1
+                time.sleep(0.2)
+            else:
+                break
         # logger.debug('job_postion_list:{}',job_postion_list)
 
-        tryCount = 0 
+        tryCount = 0
         tryChangeCount = 0
         # 切换角色需要排除当前选中角色
         while tryCount < 10:

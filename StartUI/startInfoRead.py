@@ -117,11 +117,12 @@ def startGameInfo(max_img,job_img='startUI/img/job_list/阿修罗.jpg'):
     # isStart,coordinate = find_picd('test/img/角色选择.jpg','StartUI/img/start_game.jpg',0.8)
     if coordinates is not None and len(coordinates) > 0:
         cur_index = 0
+        tryCount = 0
         while cur_index < len(coordinates):
             coordinate = coordinates[cur_index]
             # print('找到职业图片坐标:',list(coordinate[0]),list(coordinate[1]))
             # cv_imread_roi('test/img/角色选择.jpg',[[81.0, 272.0], [152.0, 272.0], [152.0, 289.0], [81.0, 289.0]])
-            left,top,right,bottom = (coordinate[0][0]-30,coordinate[0][1]-20,coordinate[1][0]+30,coordinate[1][1]+20)
+            left,top,right,bottom = (coordinate[0][0]-30-random.randint(-2,2),coordinate[0][1]-20-random.randint(-2,2),coordinate[1][0]+30+random.randint(-2,2),coordinate[1][1]+20+random.randint(-2,2))
             tmp_img =  cv_imread_roi(max_img,left,top,right,bottom)
             # 假设 cur_img 是一个 4 通道的 numpy 数组
             if tmp_img.shape[2] == 4:  # 检查是否有 4 个通道
@@ -135,6 +136,10 @@ def startGameInfo(max_img,job_img='startUI/img/job_list/阿修罗.jpg'):
             print('texts:',texts)
             # text1 = None
             if texts is None or len(texts)<2:
+                if tryCount <5:
+                    tryCount+=1
+                else:
+                    return []    
                 continue
             # elif len(texts)==3:
             #     text1 = texts[0].replace('级',' ')
