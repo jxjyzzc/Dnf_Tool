@@ -12,5 +12,9 @@
         <skills>skill/total_skill.xml</skills>
         <roomskill room_name="hbl">skill/current_nvqigoong_hbl_skill.xml</roomskill>
     </job>
+    <job name="召唤师" height="93">
+        <skills>skill/total_skill.xml</skills>
+        <roomskill room_name="hbl">skill/current_zhaohuan_hbl_skill.xml</roomskill>
+    </job>
 
 </root>

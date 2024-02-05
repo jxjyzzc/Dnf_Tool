@@ -71,6 +71,14 @@ class RoleInfo():
             roleResult['level'] = roleResult['level'][0]
         # print('level:',result)
 
+        hp_img = full_img[556:575,237:267]
+        image = self.imgPreprocessing(hp_img)
+        result = ocrUtil.detectImgOcr(image)
+        roleResult['hp'] = [detection[1][0] for line in result for detection in line]
+        if  len(roleResult['hp'])>0:
+            roleResult['hp'] = roleResult['hp'][0]
+
+
         map_img = full_img[29:48,663:783]
 
         image = self.imgPreprocessing(map_img)
@@ -162,16 +170,16 @@ class RoleInfo():
         tryCount = 0
         tryChangeCount = 0
         # 切换角色需要排除当前选中角色
-        while tryCount < 10:
+        while tryCount < 50:
             cur_res = startInfoRead.read_curr_role_info(full_img)
             print('cur_res TryCount:',tryCount)
-            if len(cur_res)>0:
+            if len(cur_res)>=3:
                 tryCount = 0
                 break
             tryCount+=1
             tryChangeCount += 1
             full_img = winApi.getGameImg()
-            time.sleep(2)
+            time.sleep(0.2)
             if tryChangeCount > 5:
                 logger.debug('识别当前角色失败，切换下一个角色进行校验')
                 winApi.keyDown('66')

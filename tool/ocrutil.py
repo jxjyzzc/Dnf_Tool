@@ -202,7 +202,7 @@ class OcrUtil:
         scores = [detection[1][1] for line in result for detection in line]  # Nested loop added
         # 如果scores中存在分数低于0.8的，就返回None
         min_scores = [score for score in scores if score < 0.8]
-        if len(min_scores)>1:
+        if len(min_scores)>0:
             logger.warning('识别的置信率有低于0.8的,不进行识别')
             return []
 

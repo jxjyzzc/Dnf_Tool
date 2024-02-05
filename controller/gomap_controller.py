@@ -81,7 +81,12 @@ def initPostionConfig(postionList,powerList):
         if not inStartGame:
             logger.warning('不在角色选择界面，无法初始化postionList')
             return False
-        job_postion_list = startInfoRead.startGameInfo(im_opencv)
+        
+        job_postion_list = []
+        while len(job_postion_list) == 0:
+            full_img = winApi.getGameImg()     
+            job_postion_list = startInfoRead.startGameInfo(full_img)
+            time.sleep(0.2)
         
         if len(job_postion_list) > 0:
             postionList = [job[0] for job in job_postion_list]
@@ -113,7 +118,7 @@ if __name__=="__main__":
        logger.info('人物目前在图中..')
     #    timer.start()
        time.sleep(2)
-       import HblScript as hbl
+       import task.HblScript as hbl
        isFinish =  hbl.autoBeatMonster('阿修罗')
        # 出图分解装备
        if isFinish:
@@ -145,7 +150,7 @@ if __name__=="__main__":
     while GAMEINFO.gameLoop:
         
         logger.info('roleResult:{}',roleResult)
-        if len(roleResult['level'])==0:
+        if len(roleResult['hp'])==0:
             logger.info('===============未找到图内特征,开始选择角色=================')
             curPostion,nextPostion = roleInfo.changeRole()
             time.sleep(3)
@@ -188,7 +193,7 @@ if __name__=="__main__":
                     logger.info('开始自动打怪...')
 
                     # timer.start()
-                    import HblScript as hbl
+                    import task.HblScript as hbl
                     isFinish =  hbl.autoBeatMonster('阿修罗')
                     # 出图分解装备
                     if isFinish:

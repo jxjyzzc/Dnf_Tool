@@ -817,4 +817,4 @@ def autoBeatMonster(jobName):
 
 if __name__ == '__main__':
     GAMEINFO.gameState = True
-    autoBeatMonster('阿修罗')
+    autoBeatMonster('召唤师')

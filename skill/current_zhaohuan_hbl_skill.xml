@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<root>
+
+    <skills>
+        <!--房间号：0_0  -  0_4-->
+        <row>
+            <cell></cell>
+            <cell></cell>
+            <cell></cell>
+            <cell></cell>
+            <cell></cell>
+        </row>
+
+        <!--房间号：1_0  -  1_4-->
+        <row>
+            <cell></cell>
+
+            <cell>
+                <!--状态技能-->
+                <chars>
+                    <char></char>
+                </chars>
+                <!--伤害技能-->
+                <chars>
+                    <char>F</char>
+                    <char>CR</char>
+                </chars>
+            </cell>
+            <!-- 房间号: 1_2 -->
+            <cell>
+                <!--状态技能-->
+                <chars>
+                    <char></char>
+                </chars>
+                <!--伤害技能-->
+                <chars>
+                    <char>F</char>
+                    <char>CR</char>
+                </chars>
+            </cell>
+            <!-- 房间号: 1_3 -->
+            <cell>
+                <!--状态技能-->
+                <chars>
+                    <char></char>
+                </chars>
+                <!--伤害技能-->
+                <chars>
+                    <char>R</char>
+                    <char>F</char>
+                </chars>
+            </cell>
+            <!-- 房间号: 1_4 -->
+            <cell>
+                <!--状态技能-->
+                <chars>
+                    <char>S</char>
+                    <char>T</char>
+                    <char>SP</char>
+                </chars>
+                <!--伤害技能-->
+                <chars>
+                    <char>E</char>
+                    <char>W</char>
+                    <char>Q</char>
+                    <char>R</char>
+                    <char>Y</char>
+                    <char>A</char>
+                    <char>G</char>
+                    <char>F</char>
+                    <char>CT</char>
+                    <char>A</char>
+                    <char>Q</char>
+                    <char>AL</char>
+                </chars>
+            </cell>
+
+            
+
+           
+        </row>
+
+        <!--房间号：2_0  -  2_4-->
+        <row>
+            <cell></cell>
+            <!--房间号：2_1-->
+            <cell>
+                <!--状态技能-->
+                <chars>
+                    <char></char>
+                </chars>
+                <!--伤害技能-->
+                <chars>
+                    <char>F</char>
+                    <char>CR</char>
+                </chars>
+            </cell>
+            <!--房间号：2_2-->
+            <cell>
+                <!--状态技能-->
+                <chars>
+                    <char></char>
+                </chars>
+                <!--伤害技能-->
+                <chars>
+                    <char>F</char>
+                    <char>CR</char>
+                </chars>
+            </cell>
+            <!--房间号：2_2-->
+            <cell>
+                <!--状态技能-->
+                <chars>
+                    <char></char>
+                </chars>
+                <!--伤害技能-->
+                <chars>
+                    <char>F</char>
+                    <char>CR</char>
+                </chars>
+            </cell>
+            <cell></cell>
+        </row>
+
+        <!--房间号：3_0  -  3_4-->
+        <row>
+            <cell></cell>
+            <!--房间号：3_1-->
+            <cell>
+                <!--状态技能-->
+                <chars>
+                    <char></char>
+                </chars>
+                <chars>
+                    <char>F</char>
+                    <char>CR</char>
+                </chars>
+            </cell>
+            <!--房间号：3_2-->
+            <cell>
+                <!--状态技能-->
+                <chars>
+                    <char></char>
+                </chars>
+                <!--伤害技能-->
+                <chars>
+                    <char>F</char>
+                    <char>CR</char>
+                </chars>
+            </cell>
+
+            <!--房间号：3_3-->
+            <cell></cell>
+
+            <!--房间号：3_4-->
+            <cell></cell>
+            
+        </row>
+
+        <!--房间号：4_0  -  4_4-->
+        <row>
+            <cell></cell>
+            <!--房间号：4_1-->
+            <cell>
+                <!--状态技能-->
+                <chars>
+                    <char>SP</char>
+                    <char>S</char>
+                </chars>
+                <!--伤害技能-->
+                <chars>
+                </chars>
+            </cell>
+
+            <cell></cell>
+
+            <cell></cell>
+
+            <cell></cell>
+
+            
+        </row>
+
+    </skills>
+</root>

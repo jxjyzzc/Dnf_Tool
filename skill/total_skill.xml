@@ -35,4 +35,21 @@
 		<skill id="T" cd="290" costTime="0.4" name="烈日气息" ></skill>
 		<skill id="CT" cd="12" costTime="0.3" name="念蛇" ></skill>
     </Skills>
+    <Skills jobName="召唤师">
+        <skill id="SP" cd="10" costTime="3.5" name="支配之环" ></skill>
+        <skill id="A" cd="145" costTime="2.3" name="千鬼杀"></skill>
+        <skill id="S" cd="5" costTime="0.6" name="召唤兽狂化"></skill>
+        <skill id="D" cd="7.1" costTime="0.6" name="路易斯"></skill>
+        <skill id="F" cd="1" costTime="0.5" name="丸子"></skill>
+        <skill id="G" cd="40.9" costTime="2"  name="月蚀之影"></skill>
+        <skill id="H" cd="290" costTime="7" name="三觉"></skill>
+        <skill id="AL" cd="10" costTime="0.7" name="召唤师传送"></skill>
+		<skill id="Q" cd="14.2" costTime="0.6" name="精灵王" ></skill>
+		<skill id="W" cd="47.5" costTime="1" name="牛头王" ></skill>
+		<skill id="E" cd="40" costTime="1.2" name="狂化黑月" ></skill>
+		<skill id="R" cd="60" costTime="2.3" name="至高精灵王" ></skill>
+		<skill id="Y" cd="180" costTime="0.6" name="二觉" ></skill>
+		<skill id="T" cd="180" costTime="1" name="逆月之蚀" ></skill>
+		<skill id="CT" cd="3" costTime="0.3" name="鞭子" ></skill>
+    </Skills>
 </root>

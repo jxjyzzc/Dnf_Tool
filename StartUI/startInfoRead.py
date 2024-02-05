@@ -59,24 +59,31 @@ def read_curr_role_info(img: str):
     cv2.imwrite(tmp_jpg_path,cur_img)
     image = np.array(cur_img)
 
-    result = []
+    result = ocrUtil.detectImgOcrText(image)
 
-    while len(result) == 0:
-        result = ocrUtil.detectImgOcr(image)
-        time.sleep(1)
+    # result = []
+
+    # tryCount = 0
+    # while len(result) == 0 and tryCount < 10:
+    #     result = ocrUtil.detectImgOcr(image)
+    #     tryCount += 1
+    #     time.sleep(1)
     # cv2.imshow('cur_img', image)
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
 
+    tryCount = 0
     new_result = []
 
     # print('read_curr_role_info result:',result)
     # print('read_curr_role_info result size:',len(result[0]))
-    if len(result[0]) < 2:
-        return new_result
+    if result is None or len(result) < 2:
+        return []
 
-    boxes = [detection[0] for line in result for detection in line]
-    txts = [detection[1][0] for line in result for detection in line] 
+
+    txts = result
+    
+
     text1 = txts[0].replace('级',' ')
     text3 = txts[-1].replace(',', '').replace('.', '').replace('，','')
     txts = [text1,txts[1],text3]
@@ -104,7 +111,8 @@ def is_integer_instance(s):
         return False
 
 """
-    开始游戏界面信息读取
+    开始游戏界面信息读取,
+    如果10次没有准确读取到所有角色信息，返回空
 """    
 def startGameInfo(max_img,job_img='startUI/img/job_list/阿修罗.jpg'):
     job_postion_list = []
@@ -119,10 +127,13 @@ def startGameInfo(max_img,job_img='startUI/img/job_list/阿修罗.jpg'):
         cur_index = 0
         tryCount = 0
         while cur_index < len(coordinates):
+            if tryCount > 10:
+                return []
+
             coordinate = coordinates[cur_index]
             # print('找到职业图片坐标:',list(coordinate[0]),list(coordinate[1]))
             # cv_imread_roi('test/img/角色选择.jpg',[[81.0, 272.0], [152.0, 272.0], [152.0, 289.0], [81.0, 289.0]])
-            left,top,right,bottom = (coordinate[0][0]-30-random.randint(-2,2),coordinate[0][1]-20-random.randint(-2,2),coordinate[1][0]+30+random.randint(-2,2),coordinate[1][1]+20+random.randint(-2,2))
+            left,top,right,bottom = (coordinate[0][0]-30-random.randint(-2,2),coordinate[0][1]-20-random.randint(-2,2),coordinate[1][0]+30+random.randint(-2,2),coordinate[1][1]+20+random.randint(0,2))
             tmp_img =  cv_imread_roi(max_img,left,top,right,bottom)
             # 假设 cur_img 是一个 4 通道的 numpy 数组
             if tmp_img.shape[2] == 4:  # 检查是否有 4 个通道
@@ -133,13 +144,8 @@ def startGameInfo(max_img,job_img='startUI/img/job_list/阿修罗.jpg'):
             # cv2.waitKey(0)
             
             texts = ocrUtil.detectImgOcrText(tmp_img)
-            print('texts:',texts)
-            # text1 = None
-            if texts is None or len(texts)<2:
-                if tryCount <5:
-                    tryCount+=1
-                else:
-                    return []    
+            if texts is None or len(texts) == 0:
+                tryCount += 1
                 continue
             # elif len(texts)==3:
             #     text1 = texts[0].replace('级',' ')
@@ -152,6 +158,9 @@ def startGameInfo(max_img,job_img='startUI/img/job_list/阿修罗.jpg'):
                 # job_postion_list.append(([left,top,right,bottom],text1))
             if text3 is not None and is_integer_instance(text3) and int(text3) > 35000:
                 job_postion_list.append(([left,top,right,bottom],text3))
+            else:
+                tryCount += 1
+                continue    
             cur_index += 1    
     return job_postion_list        
 
