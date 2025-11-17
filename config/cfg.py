@@ -7,7 +7,7 @@ import serial,ch9329Comm
 _config_path = os.path.dirname(__file__)
 _idx = _config_path.rfind(os.sep)
 # MY_DLL = os.path.join(_config_path[:_idx], 'dll', 'msdk_64.dll')
-serial.ser = serial.Serial('COM4', 9600)  # 开启串口
+serial.ser = serial.Serial('COM3', 9600)  # 开启串口
 keyboard = ch9329Comm.keyboard.DataComm()
 
 
@@ -22,6 +22,6 @@ TASK_KEY = 'f2'
 # 应用title
 APP_TITLE = '地下城与勇士：创新世纪'
 
-from airtest.core.settings import Settings as ST
+# from airtest.core.settings import Settings as ST
 # ST.THRESHOLD = 0.5  # 识别图片默认阈值
 
